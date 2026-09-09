@@ -1,0 +1,68 @@
+# ---------------------------------------------------------------------------
+# What counts as evidence, and what it is worth.
+#
+# The rule this file exists to hold: served, considered and included are
+# *unknown*, weight zero. `not_selected` is unknown too - a reader may have
+# found the answer at rank one, and treating silence as a negative
+# manufactures negatives at exactly the rate the region serves results.
+# ---------------------------------------------------------------------------
+
+proof:
+  version: 1
+  # Positive and negative sums never cancel. P, N, Net and the conflict rate
+  # are published separately.
+  publish_separately: [positive_weight, negative_weight, net_weight, conflict_rate]
+
+  event_types:
+    served:            { polarity: unknown,  base_weight: 0.0 }
+    considered:        { polarity: unknown,  base_weight: 0.0 }
+    included:          { polarity: unknown,  base_weight: 0.0 }
+    not_selected:      { polarity: unknown,  base_weight: 0.0 }
+    cited:             { polarity: positive, base_weight: 0.4 }
+    selected:          { polarity: positive, base_weight: 0.5 }
+    explicit_accept:   { polarity: positive, base_weight: 1.0 }
+    explicit_reject:   { polarity: negative, base_weight: 1.0 }
+    downstream_success: { polarity: positive, base_weight: 0.8 }
+    downstream_failure: { polarity: negative, base_weight: 0.8 }
+    deterministic_validation_pass: { polarity: positive, base_weight: 1.0 }
+    deterministic_validation_fail: { polarity: negative, base_weight: 1.0 }
+
+  # Weight is a product of four reported multipliers, never a single opaque
+  # number. Each is recorded on the proof event.
+  multipliers:
+    directness:
+      direct_text: 1.0
+      structured_metadata: 0.9
+      researcher_inference: 0.0     # guides collection, never scores an answer
+    independence:
+      independent_judge: 1.0
+      same_arm: 0.6
+      self_reported: 0.3
+    specificity:
+      exact_locator: 1.0
+      document_level: 0.7
+      source_level: 0.4
+    recency:
+      current: 1.0
+      superseded: 0.0
+
+  minimum_evidence:
+    # A metric below its minimum reports `insufficient_evidence` with
+    # `value: null`. It never reports 0.0.
+    per_question_proof_events: 1
+    per_metric_questions: 12
+    per_cohort_questions: 6
+
+  conflict:
+    # A target carrying both positive and negative proof is a conflict, and
+    # the rate is published rather than resolved by majority.
+    report_rate: true
+    resolution: none
+
+judging:
+  # Model-based judging is optional, always labelled, and can never be the
+  # sole basis for an improvement claim. It cannot enter a primary metric.
+  enabled: false
+  model: ${BENCHMARK_MODEL:-replay:benchmark}
+  role: diagnostic_only
+  requires_deterministic_agreement_sample: 0.20

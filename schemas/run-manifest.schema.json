@@ -1,0 +1,90 @@
+{
+  "$id": "https://github.com/esatt10/pheasant-deep-research/schemas/run-manifest.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "description": "The document every later comparison is judged against. Two runs are comparable only when their config_digest matches, or when every differing resolved field has been enumerated.",
+  "properties": {
+    "arms": {
+      "items": {
+        "enum": [
+          "S0",
+          "C0",
+          "P0",
+          "P1",
+          "P2"
+        ]
+      },
+      "type": "array"
+    },
+    "command": {
+      "type": "string"
+    },
+    "config_digest": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "cost_budget_usd": {
+      "exclusiveMinimum": 0,
+      "type": "number"
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "environment": {
+      "type": "object"
+    },
+    "experiment_name": {
+      "type": "string"
+    },
+    "models": {
+      "type": "object"
+    },
+    "nonce": {
+      "type": "string"
+    },
+    "package_version": {
+      "type": "string"
+    },
+    "pheasant": {
+      "type": "object"
+    },
+    "privacy": {
+      "type": "object"
+    },
+    "replay": {
+      "type": "object"
+    },
+    "resolved_config": {
+      "type": "object"
+    },
+    "run_id": {
+      "pattern": "^run-[0-9a-f]{16}$",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": 1
+    },
+    "seed": {
+      "type": "integer"
+    },
+    "status": {
+      "type": "string"
+    },
+    "topics": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "run_id",
+    "config_digest",
+    "arms",
+    "models",
+    "resolved_config"
+  ],
+  "title": "run-manifest",
+  "type": "object"
+}

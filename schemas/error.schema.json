@@ -1,0 +1,158 @@
+{
+  "$id": "https://github.com/esatt10/pheasant-deep-research/schemas/error.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "description": "One recorded attempt. Every attempt is recorded, including the ones a retry later rescued: a run that only recorded terminal failures would look healthier the flakier it was. Secrets never appear here - bodies are digests, messages are redacted.",
+  "properties": {
+    "attempt": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "backoff_seconds": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "class": {
+      "enum": [
+        "timeout",
+        "transport",
+        "authentication",
+        "rate_limit",
+        "schema",
+        "tool",
+        "model",
+        "budget",
+        "data",
+        "invariant",
+        "unknown"
+      ]
+    },
+    "component": {
+      "type": "string"
+    },
+    "error_id": {
+      "type": "string"
+    },
+    "event_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "exception_type": {
+      "type": "string"
+    },
+    "impact": {
+      "properties": {
+        "affected_queries": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "comparability": {
+          "enum": [
+            "none",
+            "partial",
+            "invalidated"
+          ]
+        },
+        "excluded_from_metrics": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "affected_queries",
+        "excluded_from_metrics",
+        "comparability"
+      ],
+      "type": "object"
+    },
+    "message_redacted": {
+      "type": "string"
+    },
+    "occurred_at": {
+      "type": "string"
+    },
+    "operation": {
+      "type": "string"
+    },
+    "request_digest": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "resolution": {
+      "enum": [
+        "retried",
+        "recovered",
+        "skipped",
+        "terminal",
+        "unresolved"
+      ]
+    },
+    "response_digest": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "retryable": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "span_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "stack_digest": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "stage": {
+      "enum": [
+        "discovery",
+        "acquisition",
+        "extraction",
+        "mcp",
+        "ingest",
+        "index",
+        "retrieval",
+        "answer",
+        "evaluation",
+        "report"
+      ]
+    },
+    "trace_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "error_id",
+    "run_id",
+    "occurred_at",
+    "stage",
+    "class",
+    "component",
+    "operation",
+    "attempt",
+    "impact"
+  ],
+  "title": "error",
+  "type": "object"
+}

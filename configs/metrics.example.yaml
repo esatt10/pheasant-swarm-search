@@ -1,0 +1,113 @@
+# ---------------------------------------------------------------------------
+# What "better", "worse" and "not enough evidence" mean for this run.
+#
+# Every classification in a report names the threshold it used. Nothing here
+# is inferred at report time.
+# ---------------------------------------------------------------------------
+
+metrics:
+  # The metrics that may support a headline claim. Everything else is a
+  # diagnostic and is rendered in a separate section.
+  primary:
+    - fact_f1
+    - fact_recall
+    - evidence_support_rate
+    - citation_validity
+    - known_positive_recall_at_k
+  diagnostic:
+    - token_f1
+    - embedding_alignment
+    - model_judge_score
+  k: 10
+  # Relative lift is `not_applicable` when the baseline magnitude is below
+  # this; a percentage change against nearly zero is a number, not a finding.
+  relative_lift_epsilon: 0.02
+
+classification:
+  # Practical thresholds (delta), per metric, in the metric's own units.
+  # Proportions are reported as percentage points.
+  practical_threshold:
+    default: 0.05
+    fact_f1: 0.05
+    fact_recall: 0.05
+    fact_precision: 0.05
+    evidence_support_rate: 0.05
+    citation_validity: 0.03
+    known_positive_recall_at_k: 0.05
+    known_positive_reciprocal_rank: 0.05
+    negative_exposure_at_k: 0.02
+    unsupported_claim_rate: 0.03
+    abstention_accuracy: 0.05
+  lower_is_better:
+    - negative_exposure_at_k
+    - unsupported_claim_rate
+    - stale_memory_leak_rate
+    - duplicate_rate
+    - latency_p95_ms
+    - cost_usd
+  # A delta is only classified when this much paired evidence exists.
+  minimum_paired_questions: 12
+  minimum_pairing_coverage: 0.80
+  require_interval_excludes_zero: true
+  # A protected subgroup that regresses turns an aggregate improvement into
+  # `mixed`, never into `improved`.
+  protected_subgroups:
+    - question_type
+    - cohort
+    - difficulty
+
+statistics:
+  enabled: true
+  bootstrap_resamples: 2000
+  bootstrap_seed: 240904
+  confidence_level: 0.95
+  paired_tests: [mcnemar, wilcoxon]
+  multiple_comparison_correction: benjamini_hochberg
+  false_discovery_rate: 0.10
+  minimum_n_for_tests: 12
+
+specialist_noninferiority:
+  # P1/P2 "rivals" S0 only when the lower paired confidence bound is no worse
+  # than -margin, for every metric listed. A numeric win is not required and
+  # is not sufficient on its own.
+  margin:
+    fact_f1: 0.05
+    evidence_support_rate: 0.05
+    citation_validity: 0.03
+  require_holdout_cohort: true
+  require_gates_pass: true
+  require_cost_within_budget: true
+  require_no_protected_subgroup_regression: true
+
+gates:
+  # Hard gates are evaluated before aggregation. A good score cannot offset a
+  # failed gate, and a gate that could not be evaluated is not a pass: a gate
+  # set reports `null` unless every gate in it ran.
+  acl_leak: { enabled: true, max_violations: 0 }
+  stale_memory_leak: { enabled: true, max_rate: 0.0 }
+  as_of_correctness: { enabled: true, max_violations: 0 }
+  abstention: { enabled: true, min_accuracy: 0.75 }
+  known_positive_exclusion: { enabled: true, max_violations: 0 }
+  control_regression: { enabled: true, max_rate: 0.10 }
+  negative_exposure_increase: { enabled: true, max_delta: 0.02 }
+  benchmark_leakage: { enabled: true, max_findings: 0 }
+  ingest_receipt_rate: { enabled: true, min_rate: 0.98 }
+  silent_loss: { enabled: true, max_items: 0 }
+  snapshot_drift: { enabled: true, max_drifted_sections: 0 }
+  budget: { enabled: true, max_overrun_usd: 0.0 }
+
+answer_matching:
+  # Deterministic fact matching. A required fact carries its own matcher; a
+  # fact nobody can match deterministically is not eligible as an operand and
+  # is reported as an exclusion rather than as a miss.
+  normalize:
+    casefold: true
+    strip_accents: true
+    collapse_whitespace: true
+    strip_punctuation: true
+    number_words_to_digits: true
+  numeric_relative_tolerance: 0.02
+  require_citation_for_support: true
+  # An answer citation is valid only when it names an artifact the arm
+  # actually retrieved in the same session.
+  citation_must_be_retrieved: true

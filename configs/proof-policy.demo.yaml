@@ -1,0 +1,51 @@
+# Demo proof policy.
+#
+# Identical to proof-policy.example.yaml except for the evidence minimums,
+# which are scaled to a fourteen-question demo. Lowering them here, in a file
+# whose name says demo, is honest; lowering them in the shipped defaults so
+# that more numbers appear would not be.
+proof:
+  version: 1
+  publish_separately: [positive_weight, negative_weight, net_weight, conflict_rate]
+  event_types:
+    served:            { polarity: unknown,  base_weight: 0.0 }
+    considered:        { polarity: unknown,  base_weight: 0.0 }
+    included:          { polarity: unknown,  base_weight: 0.0 }
+    not_selected:      { polarity: unknown,  base_weight: 0.0 }
+    cited:             { polarity: positive, base_weight: 0.4 }
+    selected:          { polarity: positive, base_weight: 0.5 }
+    explicit_accept:   { polarity: positive, base_weight: 1.0 }
+    explicit_reject:   { polarity: negative, base_weight: 1.0 }
+    downstream_success: { polarity: positive, base_weight: 0.8 }
+    downstream_failure: { polarity: negative, base_weight: 0.8 }
+    deterministic_validation_pass: { polarity: positive, base_weight: 1.0 }
+    deterministic_validation_fail: { polarity: negative, base_weight: 1.0 }
+  multipliers:
+    directness:
+      direct_text: 1.0
+      structured_metadata: 0.9
+      researcher_inference: 0.0
+    independence:
+      independent_judge: 1.0
+      same_arm: 0.6
+      self_reported: 0.3
+    specificity:
+      exact_locator: 1.0
+      document_level: 0.7
+      source_level: 0.4
+    recency:
+      current: 1.0
+      superseded: 0.0
+  minimum_evidence:
+    per_question_proof_events: 1
+    per_metric_questions: 6
+    per_cohort_questions: 2
+  conflict:
+    report_rate: true
+    resolution: none
+
+judging:
+  enabled: false
+  model: ${BENCHMARK_MODEL:-replay:benchmark}
+  role: diagnostic_only
+  requires_deterministic_agreement_sample: 0.20

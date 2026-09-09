@@ -1,0 +1,131 @@
+{
+  "$id": "https://github.com/esatt10/pheasant-deep-research/schemas/answer.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "description": "One arm's answer in one session. `read_passages` is what the session actually read; a citation naming anything else is invalid and is counted.",
+  "properties": {
+    "abstained": {
+      "type": "boolean"
+    },
+    "abstention_reason": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "answer_id": {
+      "type": "string"
+    },
+    "answer_text": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "arm_id": {
+      "enum": [
+        "S0",
+        "C0",
+        "P0",
+        "P1",
+        "P2"
+      ]
+    },
+    "claims": {
+      "items": {
+        "properties": {
+          "citations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "text",
+          "citations"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "cost_usd": {
+      "minimum": 0,
+      "type": "number"
+    },
+    "graph_generation": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "latency_ms": {
+      "minimum": 0,
+      "type": "number"
+    },
+    "model": {
+      "type": "string"
+    },
+    "provider": {
+      "type": "string"
+    },
+    "queries_used": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "question_id": {
+      "type": "string"
+    },
+    "read_passages": {
+      "type": "array"
+    },
+    "repetition": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "retrieved_artifact_ids": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "search_calls": {
+      "type": "array"
+    },
+    "session_id": {
+      "type": "string"
+    },
+    "snapshot_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "status": {
+      "type": "string"
+    },
+    "trace_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "answer_id",
+    "run_id",
+    "question_id",
+    "arm_id",
+    "repetition",
+    "session_id",
+    "claims",
+    "abstained"
+  ],
+  "title": "answer",
+  "type": "object"
+}

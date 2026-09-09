@@ -1,0 +1,81 @@
+# Demo thresholds.
+#
+# The only differences from metrics.example.yaml are the evidence minimums:
+# a fourteen-question demo cannot meet a twelve-question-per-cohort floor, and
+# lowering it here - visibly, in a file whose name says demo - is honest,
+# where quietly lowering it in the shipped defaults would not be.
+metrics:
+  primary:
+    - fact_f1
+    - fact_recall
+    - evidence_support_rate
+    - citation_validity
+    - known_positive_recall_at_k
+    - negative_exposure_at_k
+    - abstention_accuracy
+  diagnostic: []
+  k: 10
+  relative_lift_epsilon: 0.02
+
+classification:
+  practical_threshold:
+    default: 0.05
+    fact_f1: 0.05
+    fact_recall: 0.05
+    evidence_support_rate: 0.05
+    citation_validity: 0.03
+    known_positive_recall_at_k: 0.05
+    negative_exposure_at_k: 0.02
+    abstention_accuracy: 0.05
+  lower_is_better:
+    - negative_exposure_at_k
+    - unsupported_claim_rate
+  minimum_paired_questions: 6
+  minimum_pairing_coverage: 0.60
+  require_interval_excludes_zero: true
+  protected_subgroups: [question_type, cohort]
+
+statistics:
+  enabled: true
+  bootstrap_resamples: 400
+  bootstrap_seed: 240904
+  confidence_level: 0.95
+  paired_tests: [mcnemar, wilcoxon]
+  multiple_comparison_correction: benjamini_hochberg
+  false_discovery_rate: 0.10
+  minimum_n_for_tests: 6
+
+specialist_noninferiority:
+  margin:
+    fact_f1: 0.05
+    evidence_support_rate: 0.05
+  require_holdout_cohort: true
+  require_gates_pass: true
+  require_cost_within_budget: true
+  require_no_protected_subgroup_regression: true
+
+gates:
+  acl_leak: { enabled: true, max_violations: 0 }
+  stale_memory_leak: { enabled: true, max_rate: 0.0 }
+  as_of_correctness: { enabled: true, max_violations: 0 }
+  abstention: { enabled: true, min_accuracy: 0.50 }
+  known_positive_exclusion: { enabled: true, max_violations: 0 }
+  control_regression: { enabled: true, max_rate: 0.34 }
+  negative_exposure_increase: { enabled: true, max_delta: 0.02 }
+  benchmark_leakage: { enabled: true, max_findings: 0 }
+  ingest_receipt_rate: { enabled: true, min_rate: 0.98 }
+  silent_loss: { enabled: true, max_items: 0 }
+  snapshot_drift: { enabled: true, max_drifted_sections: 0 }
+  budget: { enabled: true, max_overrun_usd: 0.0 }
+
+answer_matching:
+  normalize:
+    casefold: true
+    strip_accents: true
+    collapse_whitespace: true
+    strip_punctuation: true
+    number_words_to_digits: true
+  numeric_relative_tolerance: 0.02
+  require_citation_for_support: true
+  citation_must_be_retrieved: true
+  support_overlap_threshold: 0.5

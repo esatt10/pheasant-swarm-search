@@ -1,0 +1,47 @@
+# ---------------------------------------------------------------------------
+# Topics, and the facets a topic must cover before collection may be declared
+# sufficient. Facet weights are the denominator of FacetCoverage; they are
+# topic-specific on purpose, because "covered" is a claim about a field.
+# ---------------------------------------------------------------------------
+
+topics:
+  - id: topic-tardigrade-radiotolerance
+    title: Molecular basis of tardigrade radiotolerance
+    seed_terms:
+      - tardigrade radiotolerance
+      - Ramazzottius varieornatus Dsup
+      - anhydrobiosis DNA protection
+      - tardigrade radiation damage repair
+    date_range: { from: 2010-01-01, to: null }
+    facets:
+      - { id: mechanism-dsup, label: "Dsup protein and chromatin shielding", weight: 3 }
+      - { id: mechanism-repair, label: "DNA repair pathway expansion", weight: 3 }
+      - { id: mechanism-antioxidant, label: "Antioxidant and ROS scavenging", weight: 2 }
+      - { id: phenotype-dose, label: "Dose-response and survival phenotypes", weight: 2 }
+      - { id: comparative, label: "Cross-species comparison and heterologous expression", weight: 2 }
+      - { id: contested, label: "Contested claims and failed replications", weight: 2 }
+    source_authority:
+      # Source families make "independent" mean something. Two papers from one
+      # lab are one family, however many journals they appear in.
+      family_key: [first_author_affiliation, corresponding_author]
+      preferred_types: [journal_article, review, preprint]
+      minimum_peer_reviewed: 4
+
+  - id: topic-perovskite-stability
+    title: Operational stability limits of metal-halide perovskite photovoltaics
+    seed_terms:
+      - perovskite solar cell degradation mechanism
+      - ion migration methylammonium lead iodide
+      - encapsulation damp heat IEC 61215 perovskite
+      - perovskite operational stability T80
+    date_range: { from: 2015-01-01, to: null }
+    facets:
+      - { id: intrinsic, label: "Intrinsic degradation (ion migration, phase segregation)", weight: 3 }
+      - { id: extrinsic, label: "Extrinsic degradation (moisture, oxygen, UV, thermal)", weight: 3 }
+      - { id: metrology, label: "Stability protocols and reporting standards", weight: 3 }
+      - { id: mitigation, label: "Encapsulation and compositional mitigation", weight: 2 }
+      - { id: contested, label: "Disputed lifetime claims and reporting gaps", weight: 2 }
+    source_authority:
+      family_key: [first_author_affiliation, corresponding_author]
+      preferred_types: [journal_article, review, proceedings]
+      minimum_peer_reviewed: 4
