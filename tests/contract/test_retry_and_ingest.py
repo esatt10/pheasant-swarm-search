@@ -285,3 +285,86 @@ def test_a_search_pinned_to_a_drifted_snapshot_is_refused(config, mock_server, t
     ingestor.sync()
     with pytest.raises(McpToolError, match="SNAPSHOT_DRIFTED"):
         retriever.search(request)
+
+
+# -- the pin the region may not offer --------------------------------------
+
+
+def test_the_pin_is_not_sent_when_the_region_declares_no_name_for_it(config):
+    """pheasant >= 0.12 exposes the snapshot pin on HTTP and not on MCP.
+
+    The lab must not send an argument the tool does not accept, and must not
+    record a run as pinned when it was not: a run that looks pinned and is not
+    is the one failure a sealed snapshot exists to prevent.
+    """
+
+    from pheasant_lab.pheasant.retrieval import SearchRequest
+
+    request = SearchRequest(
+        run_id="run-1",
+        arm_id="P0",
+        question_id="q-1",
+        query="dsup",
+        namespace="pheasant-lab",
+        snapshot_id="snap-1",
+        as_of="2020-01-01",
+    )
+    unmapped = {"query": "query", "max_results": "max_results", "mode": "mode", "memory": "memory"}
+    arguments = request.as_arguments(unmapped, "knowledge_base", "pheasant-lab")
+    assert "snapshot_id" not in arguments
+    assert "as_of" not in arguments
+    assert request.pin_sent(unmapped) is False
+
+    mapped = {**unmapped, "snapshot_id": "snapshot_id", "as_of": "as_of"}
+    arguments = request.as_arguments(mapped, "knowledge_base", "pheasant-lab")
+    assert arguments["snapshot_id"] == "snap-1"
+    assert arguments["as_of"] == "2020-01-01"
+    assert request.pin_sent(mapped) is True
+
+
+def test_the_response_records_whether_the_pin_reached_the_region(config, mock_server, tracer):
+    from pheasant_lab.pheasant.capabilities import resolve
+    from pheasant_lab.pheasant.retrieval import Retriever, SearchRequest
+
+    client = PheasantClient.in_process(config.pheasant, mock_server, tracer=tracer)
+    session = client.connect()
+    retriever = Retriever(client, resolve(config.pheasant, session.tools), config.pheasant)
+    assert retriever.supports_pinning is True
+
+    ingestor = ingestor_for(config, mock_server, tracer)
+    ingestor.submit([request_for("body about dsup")])
+    ingestor.sync()
+    snapshot = ingestor.seal_snapshot(label="frozen")
+    response = retriever.search(
+        SearchRequest(
+            run_id="run-1",
+            arm_id="P0",
+            question_id="q-1",
+            query="dsup",
+            namespace="pheasant-lab",
+            snapshot_id=snapshot["snapshot_id"],
+        )
+    )
+    assert response.pin_sent is True
+    assert response.as_record()["pin_sent"] is True
+
+
+def test_the_shipped_example_config_claims_no_pin_that_pheasant_lacks():
+    """A regression guard on the configuration itself.
+
+    `services/retrieval.SearchRequest` carries `snapshot_id` and `as_of`, and
+    pheasant's HTTP surface passes both — but `search_context` accepts
+    neither. Mapping them here would make every live run fail at P0's first
+    search, and the mock region accepts them, so no test that only exercises
+    the mock could see it.
+    """
+
+    from pathlib import Path
+
+    import yaml
+
+    repo = Path(__file__).resolve().parents[2]
+    body = yaml.safe_load((repo / "configs/pheasant-mcp.example.yaml").read_text())
+    search_map = (body.get("argument_map") or {}).get("search") or {}
+    assert "snapshot_id" not in search_map
+    assert "as_of" not in search_map

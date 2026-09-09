@@ -100,6 +100,7 @@ class EvaluationEngine:
         snapshot_verification: Mapping[str, Any] | None = None,
         reconcile: Mapping[str, Any] | None = None,
         receipt_rate: tuple[int, int] = (0, 0),
+        limitations: Sequence[str] = (),
     ) -> None:
         self.config = config
         self.run_id = run_id
@@ -117,6 +118,9 @@ class EvaluationEngine:
         self.reconcile = dict(reconcile or {})
         self.receipt_rate = receipt_rate
         self.result = EvaluationResult()
+        # Limitations the caller established before the batch started - what
+        # the region could not do, rather than what the batch found.
+        self.result.limitations.extend(limitations)
 
     # -- the run -----------------------------------------------------------
     def run(self) -> EvaluationResult:

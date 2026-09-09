@@ -73,6 +73,15 @@ discovery:
 
 # How the lab's stable internal request shape is spelled for this server.
 # Changing a server's parameter names is a config edit, not a code change.
+#
+# A key that is ABSENT here is an argument the lab will not send. That is how
+# a capability the region does not offer is declared: pheasant >= 0.12 exposes
+# the snapshot pin and a corpus-level `as_of` on its HTTP surface and *not* on
+# `search_context`, so neither is mapped below and the lab uses the sealed
+# snapshot as a drift check rather than a pin. Mapping a name the tool does
+# not accept is worse than leaving it out: the run would look pinned and would
+# not be. `doctor` checks every mapped name against the tool's advertised
+# schema for exactly this reason.
 argument_map:
   knowledge_base_field: knowledge_base
   search:
@@ -81,8 +90,6 @@ argument_map:
     mode: mode
     memory: memory
     session: session
-    snapshot_id: snapshot_id
-    as_of: as_of
     source_name: source_name
     exclude_sources: exclude_sources
     node_types: node_types

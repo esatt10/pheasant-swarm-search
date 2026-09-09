@@ -81,6 +81,11 @@ class SearchRequest:
             self.run_id, self.arm_id, self.question_id, self.query, self.round
         )
 
+    def pin_sent(self, argument_map: Mapping[str, str]) -> bool:
+        """Was this request actually pinned to a snapshot on the wire?"""
+
+        return bool(self.snapshot_id) and "snapshot_id" in argument_map
+
     def as_arguments(
         self, argument_map: Mapping[str, str], kb_field: str, knowledge_base: str
     ) -> dict[str, Any]:
@@ -95,14 +100,17 @@ class SearchRequest:
             arguments[argument_map.get("session", "session")] = self.session
         if self.principal:
             arguments[argument_map.get("principal", "principal")] = self.principal
-        # The pin and the instant are part of the request, not of the client's
-        # bookkeeping. Recording a snapshot id and then not sending it makes a
-        # run that *looks* pinned and is not, which is the one failure a
-        # sealed snapshot exists to prevent.
-        if self.snapshot_id:
-            arguments[argument_map.get("snapshot_id", "snapshot_id")] = self.snapshot_id
-        if self.as_of:
-            arguments[argument_map.get("as_of", "as_of")] = self.as_of
+        # The pin and the instant are sent **only when the region declares a
+        # name for them**. Recording a snapshot id and then not sending it
+        # makes a run that *looks* pinned and is not - the one failure a
+        # sealed snapshot exists to prevent - so `pin_sent` records which
+        # happened rather than leaving a reader to assume. Sending a name the
+        # tool does not accept is the same lie with an error attached: a
+        # region that has no pin gets no pin, and says so.
+        if self.snapshot_id and "snapshot_id" in argument_map:
+            arguments[argument_map["snapshot_id"]] = self.snapshot_id
+        if self.as_of and "as_of" in argument_map:
+            arguments[argument_map["as_of"]] = self.as_of
         for key, value in self.filters.items():
             arguments[argument_map.get(key, key)] = value
         return arguments
@@ -163,6 +171,10 @@ class SearchResponse:
     raw_digest: str | None = None
     status: str = "succeeded"
     error: str | None = None
+    #: Whether the snapshot pin reached the region, as opposed to being
+    #: recorded locally. False with a snapshot_id set means the region offers
+    #: no pin and the snapshot is a drift check only.
+    pin_sent: bool = False
 
     @property
     def artifact_ids(self) -> list[str]:
@@ -180,6 +192,7 @@ class SearchResponse:
             "top_k": self.request.top_k,
             "memory_enabled": self.request.memory.enabled,
             "snapshot_id": self.snapshot_id or self.request.snapshot_id,
+            "pin_sent": self.pin_sent,
             "as_of": self.request.as_of,
             "graph_generation": self.graph_generation,
             "latency_ms": self.latency_ms,
@@ -213,6 +226,20 @@ class Retriever:
         self._argument_map: dict[str, str] = dict(config.argument_map.get("search") or {})
         self._kb_field = str(config.argument_map.get("knowledge_base_field", "knowledge_base"))
 
+    @property
+    def supports_pinning(self) -> bool:
+        """Does this region's search tool take a snapshot pin?
+
+        Read from the configured argument map rather than guessed, and checked
+        against the tool's advertised schema at preflight.
+        """
+
+        return "snapshot_id" in self._argument_map
+
+    @property
+    def supports_corpus_as_of(self) -> bool:
+        return "as_of" in self._argument_map
+
     def search(self, request: SearchRequest) -> SearchResponse:
         tool = self.capabilities.tool("search")
         arguments = request.as_arguments(
@@ -240,6 +267,7 @@ class Retriever:
             partial=outcome.partial,
             next_cursor=_first_str(body, "next_cursor", "cursor"),
             status=outcome.status,
+            pin_sent=request.pin_sent(self._argument_map),
         )
 
     def describe(self) -> dict[str, Any]:

@@ -676,6 +676,21 @@ def cmd_evaluate(args: argparse.Namespace) -> int:
         snapshot = dict(session.state.get("snapshot") or {})
         snapshot_id = snapshot.get("snapshot_id")
 
+        # A region whose search tool takes no snapshot pin cannot be pinned,
+        # and the run says so rather than recording an id it never sent.
+        pinning = session.retriever is not None and session.retriever.supports_pinning
+        limitations: list[str] = []
+        if snapshot_id and not pinning:
+            limitations.append(
+                f"This region's search tool accepts no snapshot pin, so `P0` ran unpinned. "
+                f"Snapshot `{snapshot_id}` was used as a drift check instead: the run fails its "
+                "snapshot gate if any section other than `memory` moved during evaluation."
+            )
+        elif not snapshot_id:
+            limitations.append(
+                "No snapshot was sealed for this run, so no drift check was possible."
+            )
+
         contexts: dict[str, ArmContext] = {}
         for arm_id in config.arms:
             role = {"S0": "specialist", "C0": "control"}.get(arm_id, "test_agent")
@@ -748,6 +763,7 @@ def cmd_evaluate(args: argparse.Namespace) -> int:
             snapshot_verification=_verify_snapshot(session, snapshot_id),
             reconcile=dict(session.state.get("reconcile") or {}),
             receipt_rate=(accepted, submitted),
+            limitations=limitations,
         )
         result = engine.run()
         session.state.update(budget=session.ledger.snapshot())

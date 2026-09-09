@@ -84,8 +84,9 @@ class CapabilityMap:
         }
 
 
-# The arguments this lab sends per capability. Preflight checks these against
-# the server's advertised schema, so a rename is caught before it costs money.
+# The arguments this lab sends per capability, before the configured argument
+# map is folded in. Preflight checks these against the server's advertised
+# schema, so a rename is caught before it costs money.
 EXPECTED_ARGUMENTS: dict[str, tuple[str, ...]] = {
     "health": (),
     "ingest": ("knowledge_base", "documents"),
@@ -103,6 +104,34 @@ EXPECTED_ARGUMENTS: dict[str, tuple[str, ...]] = {
 }
 
 
+# Which keys of an ``argument_map`` section name a *tool* argument. The rest
+# name fields inside a document, and checking those against the tool's schema
+# would report `relative_path` as an argument `submit_documents` does not
+# accept - which it does not, because it is not one.
+TOOL_LEVEL_MAP_KEYS: dict[str, frozenset[str] | None] = {
+    "search": None,  # every key names a search argument
+    "ingest": frozenset({"documents", "source_name", "submission_id", "agent_id"}),
+}
+
+
+def configured_arguments(config: PheasantFile, capability: str) -> tuple[str, ...]:
+    """The server-side names the adapter will actually send for ``capability``.
+
+    Read off the argument map rather than hard-coded, so preflight checks what
+    this configuration will do rather than what the code did when the list was
+    written. This is what turns "the region does not accept a snapshot pin"
+    into a refusal at `doctor` rather than a silently unpinned run.
+    """
+
+    section = config.argument_map.get(capability)
+    if not isinstance(section, Mapping):
+        return ()
+    allowed = TOOL_LEVEL_MAP_KEYS.get(capability, frozenset())
+    return tuple(
+        str(value) for key, value in sorted(section.items()) if allowed is None or key in allowed
+    )
+
+
 def resolve(
     config: PheasantFile,
     server_tools: Mapping[str, Mapping[str, Any]],
@@ -111,7 +140,11 @@ def resolve(
 ) -> CapabilityMap:
     """Resolve the configured capability map against ``tools/list``."""
 
-    expected = {**EXPECTED_ARGUMENTS, **(argument_overrides or {})}
+    expected = {
+        name: tuple(dict.fromkeys(args + configured_arguments(config, name)))
+        for name, args in EXPECTED_ARGUMENTS.items()
+    }
+    expected.update(argument_overrides or {})
     resolutions: dict[str, CapabilityResolution] = {}
 
     for name, spec in config.capabilities.items():

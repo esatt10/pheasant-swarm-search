@@ -77,10 +77,19 @@ uv run python scripts/export_schemas.py               # after changing a record 
   session read" is the question. Defining it as "something a Pheasant search
   returned" scored the specialist's every citation invalid, because it does not
   use Pheasant.
-- **Only `P0` is pinned to the sealed snapshot.** A pinned search is answered
-  from that state *or refused*, and `P1`'s own treatment moves the snapshot's
-  memory section. The snapshot still guards `P1`/`P2`: the drift check fails
-  the run if any section other than `memory` moved.
+- **Only `P0` is pinned to the sealed snapshot, and only where the region
+  offers a pin.** A pinned search is answered from that state *or refused*,
+  and `P1`'s own treatment moves the snapshot's memory section. The snapshot
+  still guards `P1`/`P2`: the drift check fails the run if any section other
+  than `memory` moved. pheasant >= 0.12 exposes `snapshot_id` and a
+  corpus-level `as_of` on its HTTP surface and **not** on `search_context`, so
+  the shipped example config maps neither, `Retriever.supports_pinning` is
+  false there, and the run records a limitation saying `P0` ran unpinned.
+- **An argument absent from `argument_map` is one the lab does not send.**
+  That is how a capability the region lacks is declared, and `doctor` checks
+  every mapped name against the tool's advertised schema
+  (`capabilities.configured_arguments`) so a map claiming something the tool
+  never heard of is refused before any spend.
 - **The benchmark version is content-addressed over the evidence ledger and
   the composition**, not over the run. A version carrying the run id would give
   the same question a different id in every run, and there would be no trend
@@ -119,3 +128,12 @@ uv run python scripts/export_schemas.py               # after changing a record 
   matcher; the leakage checker refused three questions per run, correctly.
 - **`ruff format` rewrites the lines your `sed` was aiming at.** Two test edits
   silently no-oped after a format pass and left an undefined name.
+- **A mock that accepts an argument the real server rejects hides the bug it
+  was built to expose.** The adapter mapped `snapshot_id` and `as_of` onto
+  `search_context`, which pheasant exposes on HTTP only. The mock accepted
+  both, so the demo, the contract tests and the drift-refusal test all passed
+  while a live run would have failed at `P0`'s first search — or, worse,
+  ignored the pin and looked pinned. Two fixes, because one was not enough:
+  the adapter sends only what the map declares (`pin_sent` records which), and
+  preflight now checks every *configured* name rather than a static list that
+  was written before the map existed.

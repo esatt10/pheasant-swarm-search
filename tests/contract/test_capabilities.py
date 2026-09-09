@@ -82,3 +82,35 @@ def test_an_optional_capability_that_is_absent_does_not_block_the_run(config, mo
     resolved = resolve(config.pheasant, tools_of(mock_server))
     enforce(resolved)
     assert resolved.has("write_memory") is False
+
+
+# -- what the adapter will actually send -----------------------------------
+
+
+def test_preflight_checks_the_arguments_the_configured_map_will_send(config, mock_server):
+    """A mapped name the tool does not accept is caught before any spend.
+
+    This is the check that was missing: `EXPECTED_ARGUMENTS` listed only
+    `knowledge_base` and `query` for search, so a map claiming a `snapshot_id`
+    the tool has never heard of resolved as usable and failed on the first
+    call of a paid run.
+    """
+
+    config.pheasant.argument_map["search"]["snapshot_id"] = "snapshot_id"
+    tools = tools_of(mock_server)
+    tools["search_context"]["inputSchema"]["properties"].pop("snapshot_id")
+    resolved = resolve(config.pheasant, tools)
+    assert resolved.resolutions["search"].schema_ok is False
+    assert "snapshot_id" in resolved.resolutions["search"].reason
+
+
+def test_document_level_map_keys_are_not_checked_as_tool_arguments(config, mock_server):
+    """`relative_path` is a field inside a document, not an ingest argument.
+
+    Checking it against `submit_documents`' schema would report a mismatch
+    that is not one, and a preflight that cries wolf is one an operator turns
+    off.
+    """
+
+    resolved = resolve(config.pheasant, tools_of(mock_server))
+    assert resolved.resolutions["ingest"].schema_ok is not False
