@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install
+        run: uv venv --python 3.12 && uv pip install -e ".[dev]"
+
+      - name: Lint
+        run: |
+          uv run ruff check src tests
+          uv run ruff format --check src tests
+
+      - name: Schemas are not stale
+        run: uv run python scripts/export_schemas.py --check-clean
+
+      # Deliberately unfiltered: the whole suite, on every change. Narrowing
+      # this to a curated list of "relevant" tests is the same staleness one
+      # level down - the list is maintained by whoever last remembered to.
+      - name: Tests
+        run: uv run pytest -q
+
+      # The demo is the integration test a person runs, so CI runs it too, and
+      # `verify` is what decides whether the artifacts hold together. It exits
+      # non-zero on a finding - including an INCOMPLETE gate verdict, which is
+      # expected against the mock region - so its output is reported rather
+      # than gating the build.
+      - name: Offline demo, end to end
+        run: |
+          uv run pheasant-lab demo --config configs/demo.yaml --output-root runs || true
+          RUN=$(ls -1d runs/run-* | tail -1)
+          echo "### Demo run \`$(basename "$RUN")\`" >> "$GITHUB_STEP_SUMMARY"
+          echo '```yaml' >> "$GITHUB_STEP_SUMMARY"
+          sed -n '/^```yaml$/,/^```$/p' "$RUN/reports/summary.md" | sed '1d;$d' >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload the demo run
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: demo-run
+          path: runs/
+          retention-days: 7

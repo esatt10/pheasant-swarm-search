@@ -1,0 +1,97 @@
+{
+  "$id": "https://github.com/esatt10/pheasant-deep-research/schemas/refinement-candidate.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "description": "A proposal with its evidence attached. Nothing here has been tested, and nothing here enters ordinary knowledge retrieval by default.",
+  "properties": {
+    "affected_query_ids": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "affected_source_ids": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "candidate_id": {
+      "type": "string"
+    },
+    "evidence_refs": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "expected_metric": {
+      "type": "string"
+    },
+    "frequency": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "proposed_change": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "risk_class": {
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "status": {
+      "enum": [
+        "proposed",
+        "shadow_tested",
+        "accepted",
+        "rejected",
+        "insufficient_evidence"
+      ]
+    },
+    "suspected_cause": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "target": {
+      "enum": [
+        "ingestion",
+        "chunking",
+        "metadata",
+        "graph",
+        "retrieval",
+        "memory",
+        "mcp_adapter",
+        "orchestration"
+      ]
+    },
+    "trigger_type": {
+      "enum": [
+        "repeated_error",
+        "retrieval_miss",
+        "unsupported_claim",
+        "negative_exposure",
+        "latency",
+        "duplication",
+        "drift"
+      ]
+    }
+  },
+  "required": [
+    "candidate_id",
+    "target",
+    "trigger_type",
+    "evidence_refs",
+    "frequency",
+    "suspected_cause",
+    "proposed_change",
+    "risk_class",
+    "status"
+  ],
+  "title": "refinement-candidate",
+  "type": "object"
+}

@@ -1,0 +1,114 @@
+{
+  "$id": "https://github.com/esatt10/pheasant-deep-research/schemas/ingest-receipt.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "description": "One item's receipt. `accepted` and `indexed` are separate dispositions because they are separate facts: acceptance is not searchability. The file is append-only, so a reader folds it by idempotency_key and the last row wins.",
+  "properties": {
+    "accepted_content_digest": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "artifact_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "content_digest": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "dedup_outcome": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "deduplicated": {
+      "type": "boolean"
+    },
+    "digest_matches": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "document_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "error_code": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "error_message": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "idempotency_key": {
+      "type": "string"
+    },
+    "indexing_state": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "receipt_id": {
+      "type": "string"
+    },
+    "recorded_at": {
+      "type": "string"
+    },
+    "retryable": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "server_trace_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "source_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string"
+    },
+    "submission_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "submissions": {
+      "minimum": 1,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "receipt_id",
+    "run_id",
+    "idempotency_key",
+    "status",
+    "submissions"
+  ],
+  "title": "ingest-receipt",
+  "type": "object"
+}

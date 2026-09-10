@@ -1,0 +1,143 @@
+{
+  "$id": "https://github.com/esatt10/pheasant-deep-research/schemas/source.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "description": "One literature candidate, wherever it got to. Rejected and blocked candidates are retained with their reason code so the same failure is not rediscovered every round.",
+  "properties": {
+    "abstract": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "acquisition_event_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "artifact_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "authors": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "candidate_id": {
+      "type": "string"
+    },
+    "canonical_url": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "content_digest": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "discovery_event_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "facet_ids": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "family_key": {
+      "type": "string"
+    },
+    "family_key_derived": {
+      "type": "boolean"
+    },
+    "idempotency_key": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "license": {
+      "type": "string"
+    },
+    "peer_reviewed": {
+      "type": "boolean"
+    },
+    "provenance_complete": {
+      "type": "boolean"
+    },
+    "provider": {
+      "type": "string"
+    },
+    "published_at": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "reason_code": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "researcher_agent_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "source_id": {
+      "type": "string"
+    },
+    "source_type": {
+      "type": "string"
+    },
+    "stable_identifier": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "state": {
+      "enum": [
+        "discovered",
+        "validated",
+        "acquired",
+        "extracted",
+        "submitted",
+        "indexed",
+        "verified",
+        "rejected",
+        "blocked",
+        "failed_retryable",
+        "failed_terminal"
+      ]
+    },
+    "title": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "source_id",
+    "run_id",
+    "provider",
+    "title",
+    "state",
+    "content_digest",
+    "family_key"
+  ],
+  "title": "source",
+  "type": "object"
+}

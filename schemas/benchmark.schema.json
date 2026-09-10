@@ -1,0 +1,96 @@
+{
+  "$id": "https://github.com/esatt10/pheasant-deep-research/schemas/benchmark.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "description": "One frozen question. The file carries no run stamp: two runs over the same corpus must produce byte-identical questions, or 'the same question in two runs' is not the same question and there is no trend line to draw.",
+  "properties": {
+    "acceptable_evidence_source_ids": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "as_of": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "cohorts": {
+      "items": {
+        "enum": [
+          "anchor",
+          "learned",
+          "temporal_holdout",
+          "control",
+          "invariant"
+        ]
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "created_from_claim_ids": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "difficulty": {
+      "enum": [
+        "direct",
+        "multi_hop",
+        "adversarial"
+      ]
+    },
+    "facet_ids": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "known_negative_source_ids": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "question_id": {
+      "pattern": "^q-[0-9a-f]{16}$",
+      "type": "string"
+    },
+    "required_fact_ids": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "text": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "topic_id": {
+      "type": "string"
+    },
+    "type": {
+      "enum": [
+        "atomic_fact",
+        "synthesis",
+        "mechanism",
+        "contradiction",
+        "temporal",
+        "source_id",
+        "abstention"
+      ]
+    }
+  },
+  "required": [
+    "question_id",
+    "topic_id",
+    "text",
+    "type",
+    "difficulty",
+    "cohorts"
+  ],
+  "title": "benchmark",
+  "type": "object"
+}

@@ -1,0 +1,98 @@
+# ---------------------------------------------------------------------------
+# The offline demo.
+#
+#   uv run pheasant-lab demo --config configs/demo.yaml
+#
+# Fixture literature, the in-process mock region, and the deterministic replay
+# provider: no network, no key, no cost. It exercises the whole pipeline -
+# collection, ingestion, the index barrier, the freeze, five arms, the metric
+# engine, the gates, the projection and every report.
+#
+# What it does NOT do is measure Pheasant. The mock region is BM25 over what
+# was submitted, and the replay provider has no prior knowledge. The reports
+# say so themselves, in their limitations section.
+# ---------------------------------------------------------------------------
+
+experiment:
+  name: swarm-lab-demo
+  seed: 240904
+  cost_budget_usd: 10.00
+  runtime_budget_minutes: 30
+  topics_file: configs/topics.demo.yaml
+  output_root: runs
+  models_file: configs/models.example.yaml
+  metrics_file: configs/metrics.demo.yaml
+  proof_policy_file: configs/proof-policy.demo.yaml
+  pheasant_file: configs/pheasant-mock.yaml
+  logging_file: configs/logging.example.yaml
+
+collection:
+  max_depth: 2
+  max_research_agents: 3
+  max_concurrent_agents: 2
+  max_search_rounds_per_agent: 4
+  max_sources_per_subtopic: 12
+  allowed_source_types: [journal_article, preprint, review, proceedings]
+  require_stable_identifier: true
+  permit_abstract_only: true
+  download_full_text_only_when_licensed: true
+  providers: [fixtures]
+  provider_timeout_seconds: 5
+  provider_max_retries: 1
+
+stopping:
+  minimum_sources_per_subtopic: 3
+  minimum_independent_source_families: 2
+  minimum_review_or_primary_sources: 1
+  maximum_duplicate_rate: 0.40
+  maximum_unresolved_critical_contradictions: 0
+  marginal_unique_claim_window: 2
+  marginal_unique_claim_threshold: 0.30
+  minimum_ingest_receipt_rate: 0.98
+  consecutive_saturated_rounds: 1
+  evaluation_budget_reserve_fraction: 0.40
+
+benchmark:
+  freeze_before_evaluation: true
+  questions_per_topic: 14
+  composition:
+    atomic_fact: 4
+    multi_source_synthesis: 3
+    mechanism_or_causality: 2
+    contradiction_or_uncertainty: 2
+    temporal_or_versioned: 1
+    source_identification: 1
+    abstention: 1
+  require_expected_evidence_ids: true
+  blind_arm_order: true
+  cohorts:
+    anchor_fraction: 0.30
+    learned_fraction: 0.30
+    temporal_holdout_fraction: 0.20
+    control_fraction: 0.10
+    invariant_fraction: 0.10
+
+arms: [S0, C0, P0, P1, P2]
+
+replay:
+  mode: current_state
+  repetitions: 1
+  fresh_session_per_question: true
+  randomize_arm_order: true
+  record_pheasant_snapshot: true
+  pairing_policy: complete_pairs_only
+  max_search_rounds_per_answer: 2
+  max_results_per_search: 8
+
+privacy:
+  store_prompt_text: true
+  store_response_text: true
+  redact_secrets: true
+  hash_principal_identifiers: true
+  allow_remote_trace_export: false
+
+refinement:
+  enabled: true
+  submit_to_pheasant: false
+  diagnostic_knowledge_base: ""
+  minimum_frequency: 2

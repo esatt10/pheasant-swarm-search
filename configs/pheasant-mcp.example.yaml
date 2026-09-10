@@ -1,0 +1,113 @@
+# ---------------------------------------------------------------------------
+# Pheasant MCP connection and capability map.
+#
+# Tool names are configured, not assumed: the server implementation may
+# evolve, and a lab that hard-codes names discovers the mismatch during a paid
+# run. `doctor` fails before any spend when a required capability is missing,
+# when a configured tool does not appear in tools/list, or when the local
+# adapter cannot satisfy the tool's advertised JSON Schema.
+#
+# The defaults match pheasant >= 0.12 (see its docs/mcp_tools.md).
+# ---------------------------------------------------------------------------
+
+transport: ${PHEASANT_MCP_TRANSPORT:-streamable_http}
+url: ${PHEASANT_MCP_URL:-http://127.0.0.1:8765/mcp}
+command: ${PHEASANT_MCP_COMMAND:-}
+token_env: PHEASANT_MCP_TOKEN
+protocol_version: "2026-07-28"
+timeout_seconds: 60
+connect_timeout_seconds: 10
+max_retries: 3
+retry_backoff_seconds: 1.0
+retry_backoff_max_seconds: 20.0
+
+knowledge_base: ${PHEASANT_KNOWLEDGE_BASE:-pheasant-lab}
+source_name: ${PHEASANT_SOURCE_NAME:-swarm-lab-literature}
+
+capabilities:
+  health:
+    tool: ${PHEASANT_TOOL_HEALTH:-list_knowledge_bases}
+    required: true
+  ingest:
+    tool: ${PHEASANT_TOOL_INGEST:-submit_documents}
+    required: true
+  ingest_status:
+    tool: ${PHEASANT_TOOL_INGEST_STATUS:-get_ingest_status}
+    required: true
+  ingest_acknowledge:
+    tool: ${PHEASANT_TOOL_INGEST_ACK:-acknowledge_ingest}
+    required: false
+  ingest_reconcile:
+    tool: ${PHEASANT_TOOL_INGEST_RECONCILE:-reconcile_ingest}
+    required: false
+  sync:
+    tool: ${PHEASANT_TOOL_SYNC:-sync_source}
+    required: false
+  search:
+    tool: ${PHEASANT_TOOL_SEARCH:-search_context}
+    required: true
+  fetch:
+    tool: ${PHEASANT_TOOL_FETCH:-get_file_summary}
+    required: false
+  write_memory:
+    tool: ${PHEASANT_TOOL_MEMORY_WRITE:-memory_write}
+    required: false
+  snapshot:
+    tool: ${PHEASANT_TOOL_SNAPSHOT:-seal_snapshot}
+    required: false
+  snapshot_get:
+    tool: ${PHEASANT_TOOL_SNAPSHOT_GET:-get_snapshot}
+    required: false
+  describe_retrieval:
+    tool: ${PHEASANT_TOOL_DESCRIBE_RETRIEVAL:-describe_retrieval}
+    required: false
+  record_evidence:
+    tool: ${PHEASANT_TOOL_RECORD_EVIDENCE:-record_evidence}
+    required: false
+
+discovery:
+  verify_configured_tool_exists: true
+  verify_input_schema: true
+  fail_on_ambiguous_capability: true
+  allow_heuristic_name_matching: false
+
+# How the lab's stable internal request shape is spelled for this server.
+# Changing a server's parameter names is a config edit, not a code change.
+#
+# A key that is ABSENT here is an argument the lab will not send. That is how
+# a capability the region does not offer is declared: pheasant >= 0.12 exposes
+# the snapshot pin and a corpus-level `as_of` on its HTTP surface and *not* on
+# `search_context`, so neither is mapped below and the lab uses the sealed
+# snapshot as a drift check rather than a pin. Mapping a name the tool does
+# not accept is worse than leaving it out: the run would look pinned and would
+# not be. `doctor` checks every mapped name against the tool's advertised
+# schema for exactly this reason.
+argument_map:
+  knowledge_base_field: knowledge_base
+  search:
+    query: query
+    max_results: max_results
+    mode: mode
+    memory: memory
+    session: session
+    source_name: source_name
+    exclude_sources: exclude_sources
+    node_types: node_types
+    min_score: min_score
+    principal: principal
+  ingest:
+    documents: documents
+    source_name: source_name
+    submission_id: submission_id
+    agent_id: agent_id
+    document_path: relative_path
+    document_text: text
+    document_key: idempotency_key
+    document_metadata: metadata
+
+isolation:
+  # The lab never writes to a source it did not create, and never writes
+  # memory outside the arms that are meant to.
+  refuse_shared_knowledge_base: false
+  require_dedicated_source: true
+  forbid_memory_writes_in_arms: [S0, C0, P0]

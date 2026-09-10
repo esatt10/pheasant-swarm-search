@@ -1,0 +1,23 @@
+# Versioned local pricing, in USD per 1,000,000 tokens.
+#
+# A model that is not listed here fails preflight when
+# `pricing.fail_when_model_price_missing` is true, which is the default: a
+# model treated as free is a budget guard that does not exist.
+version: 2026-09-01
+currency: USD
+unit: per_million_tokens
+
+models:
+  # The offline deterministic provider. Genuinely free, and declared so
+  # explicitly rather than by omission.
+  "replay:orchestrator": { input: 0.0, output: 0.0 }
+  "replay:researcher": { input: 0.0, output: 0.0 }
+  "replay:specialist": { input: 0.0, output: 0.0 }
+  "replay:test-agent": { input: 0.0, output: 0.0 }
+  "replay:control": { input: 0.0, output: 0.0 }
+  "replay:benchmark": { input: 0.0, output: 0.0 }
+
+  # Fill in from your provider's published price list before a paid run. The
+  # numbers below are placeholders and are deliberately not maintained here.
+  # "gpt-5": { input: 0.00, output: 0.00 }
+  # "claude-opus-5": { input: 0.00, output: 0.00 }

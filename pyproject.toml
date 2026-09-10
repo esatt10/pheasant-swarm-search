@@ -1,0 +1,72 @@
+[project]
+name = "pheasant-swarm-lab"
+version = "0.1.0"
+description = "Pheasant Scientific Swarm Evaluation Lab: hierarchical research swarms, a frozen evidence-linked benchmark, and paired arm comparison against a Pheasant knowledge region."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { file = "LICENSE" }
+authors = [{ name = "pheasant-swarm-lab contributors" }]
+keywords = ["mcp", "evaluation", "retrieval", "research-swarm", "pheasant"]
+classifiers = [
+  "Programming Language :: Python :: 3.12",
+  "Intended Audience :: Science/Research",
+]
+
+dependencies = [
+  "pydantic>=2.7,<3",
+  "httpx>=0.27,<1",
+  "PyYAML>=6.0,<7",
+]
+
+[project.optional-dependencies]
+duckdb = ["duckdb>=1.0,<2"]
+agents = ["openai-agents>=0.0.19"]
+dev = [
+  "pytest>=8.0",
+  "pytest-timeout>=2.3",
+  "jsonschema>=4.21",
+  "ruff>=0.6",
+  "duckdb>=1.0,<2",
+]
+
+[project.scripts]
+pheasant-lab = "pheasant_lab.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pheasant_lab"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "C4", "RUF"]
+ignore = ["B008", "RUF012"]
+
+[tool.ruff.lint.pycodestyle]
+# The formatter wraps *code* at 100. E501 is left to catch the lines it cannot
+# wrap - long prose in comments and docstrings - and only when they are
+# genuinely unreadable, rather than flagging every sentence the formatter had
+# no opinion about.
+max-line-length = 120
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["E501"]
+# The report modules use a typographic minus in headings ("P1 − P0"), which is
+# what the comparison is called everywhere else in this repository.
+"src/pheasant_lab/reports/*.py" = ["RUF001"]
+"src/pheasant_lab/cli.py" = ["RUF001"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q --strict-markers"
+markers = [
+  "live: requires a real Pheasant MCP server (deselected by default)",
+  "network: requires outbound network access (deselected by default)",
+]
+filterwarnings = ["error::DeprecationWarning:pheasant_lab.*"]

@@ -1,0 +1,110 @@
+# ---------------------------------------------------------------------------
+# Experiment definition.
+#
+# Precedence, lowest first: committed defaults -> this file -> .env -> --set
+# CLI overrides. The resolved result is written to run-manifest.json with
+# secrets removed and a SHA-256 digest; two runs are only comparable when
+# every differing resolved field is enumerated.
+# ---------------------------------------------------------------------------
+
+experiment:
+  name: niche-science-stress-test
+  seed: 240904
+  cost_budget_usd: 10.00
+  runtime_budget_minutes: 120
+  topics_file: configs/topics.example.yaml
+  output_root: runs
+  # Sibling files. Each is resolved and digested into the run manifest.
+  models_file: configs/models.example.yaml
+  metrics_file: configs/metrics.example.yaml
+  proof_policy_file: configs/proof-policy.example.yaml
+  pheasant_file: configs/pheasant-mcp.example.yaml
+  logging_file: configs/logging.example.yaml
+
+collection:
+  max_depth: 2
+  max_research_agents: 6
+  max_concurrent_agents: 3
+  max_search_rounds_per_agent: 8
+  max_sources_per_subtopic: 30
+  allowed_source_types: [journal_article, preprint, review, proceedings, dataset]
+  require_stable_identifier: true
+  permit_abstract_only: true
+  download_full_text_only_when_licensed: true
+  # Provider order is tried left to right; a provider that fails is recorded
+  # as an error and the next one is tried. `fixtures` reads
+  # tests/fixtures/literature and makes an offline run possible.
+  providers: [openalex, crossref, arxiv, pubmed]
+  provider_timeout_seconds: 20
+  provider_max_retries: 3
+
+stopping:
+  minimum_sources_per_subtopic: 6
+  minimum_independent_source_families: 3
+  minimum_review_or_primary_sources: 2
+  maximum_duplicate_rate: 0.25
+  maximum_unresolved_critical_contradictions: 0
+  marginal_unique_claim_window: 3
+  marginal_unique_claim_threshold: 0.08
+  minimum_ingest_receipt_rate: 0.98
+  consecutive_saturated_rounds: 2
+  # Fraction of the run budget that must remain unspent for the evaluation
+  # arms and reports. Collection stops before it is consumed.
+  evaluation_budget_reserve_fraction: 0.40
+
+benchmark:
+  freeze_before_evaluation: true
+  questions_per_topic: 24
+  composition:
+    atomic_fact: 6
+    multi_source_synthesis: 6
+    mechanism_or_causality: 4
+    contradiction_or_uncertainty: 3
+    temporal_or_versioned: 2
+    source_identification: 1
+    abstention: 2
+  require_expected_evidence_ids: true
+  blind_arm_order: true
+  # Cohort split. `learned` questions are the ones whose first-pass evidence
+  # is allowed to create memory or tuning; `temporal_holdout` never is.
+  cohorts:
+    anchor_fraction: 0.25
+    learned_fraction: 0.25
+    temporal_holdout_fraction: 0.25
+    control_fraction: 0.15
+    invariant_fraction: 0.10
+
+arms: [S0, C0, P0, P1, P2]
+
+replay:
+  mode: current_state
+  repetitions: 3
+  fresh_session_per_question: true
+  randomize_arm_order: true
+  record_pheasant_snapshot: true
+  # A question is included in a paired comparison only when every arm in the
+  # pair completed. See evaluation/pairing.py.
+  pairing_policy: complete_pairs_only
+  max_search_rounds_per_answer: 4
+  max_results_per_search: 10
+
+privacy:
+  store_prompt_text: true
+  store_response_text: true
+  redact_secrets: true
+  hash_principal_identifiers: true
+  allow_remote_trace_export: false
+  # Retention is a decision the operator makes, not a default this repo picks.
+  # null means "keep until deleted by hand".
+  raw_prompt_retention_days: null
+  retrieved_passage_retention_days: null
+  downloaded_content_retention_days: null
+
+refinement:
+  enabled: true
+  # Refinement candidates are a report artifact by default. Submitting them to
+  # a Pheasant namespace is a separate, explicit act, and never to the
+  # namespace ordinary retrieval reads.
+  submit_to_pheasant: false
+  diagnostic_knowledge_base: ${PHEASANT_DIAGNOSTIC_KNOWLEDGE_BASE:-}
+  minimum_frequency: 2

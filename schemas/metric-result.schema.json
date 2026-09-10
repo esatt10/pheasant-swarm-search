@@ -1,0 +1,185 @@
+{
+  "$id": "https://github.com/esatt10/pheasant-deep-research/schemas/metric-result.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "ok"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "value": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "value",
+          "denominator"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "enum": [
+              "insufficient_evidence",
+              "not_available"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "value": {
+            "type": "null"
+          }
+        }
+      }
+    }
+  ],
+  "description": "One measured value with everything needed to defend it. A metric that could not be computed reports `insufficient_evidence` with `value: null` - never 0.0 - and every row states what it does not support.",
+  "properties": {
+    "absolute_delta": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "baseline": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "claim_not_supported": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "claim_supported": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "classification": {
+      "enum": [
+        "primary",
+        "diagnostic",
+        "gate",
+        "descriptive"
+      ]
+    },
+    "denominator": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "evidence_refs": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "excluded": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "exclusion_reasons": {
+      "type": "object"
+    },
+    "formula": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "interval": {
+      "type": [
+        "array",
+        "null"
+      ]
+    },
+    "limitation": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "metric": {
+      "type": "string"
+    },
+    "metric_result_id": {
+      "type": "string"
+    },
+    "numerator": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "operand_ids": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "relative_delta": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "scope": {
+      "type": "object"
+    },
+    "status": {
+      "enum": [
+        "ok",
+        "insufficient_evidence",
+        "not_available",
+        "not_comparable"
+      ]
+    },
+    "substituted": {
+      "type": "string"
+    },
+    "threshold": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "treatment": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "unit": {
+      "type": "string"
+    },
+    "value": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "version": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "metric_result_id",
+    "metric",
+    "version",
+    "classification",
+    "formula",
+    "status",
+    "claim_supported",
+    "claim_not_supported",
+    "limitation"
+  ],
+  "title": "metric-result",
+  "type": "object"
+}

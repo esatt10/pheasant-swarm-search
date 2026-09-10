@@ -1,0 +1,121 @@
+{
+  "$id": "https://github.com/esatt10/pheasant-deep-research/schemas/event.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "description": "The universal event envelope. Sequence is monotonic per run and payload_digest is a digest of the payload as recorded, so a payload edited after the fact stops matching.",
+  "properties": {
+    "agent_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "agent_role": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "arm_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "config_digest": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "event_id": {
+      "type": "string"
+    },
+    "event_type": {
+      "type": "string"
+    },
+    "input_refs": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "occurred_at": {
+      "type": "string"
+    },
+    "output_refs": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "parent_span_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "payload": {
+      "type": "object"
+    },
+    "payload_digest": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "question_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "recorded_at": {
+      "type": "string"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": 1
+    },
+    "sequence": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "span_id": {
+      "pattern": "^[0-9a-f]{16}$",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "started",
+        "succeeded",
+        "failed",
+        "partial",
+        "skipped"
+      ]
+    },
+    "topic_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "trace_id": {
+      "pattern": "^[0-9a-f]{32}$",
+      "type": "string"
+    }
+  },
+  "required": [
+    "event_id",
+    "schema_version",
+    "occurred_at",
+    "run_id",
+    "trace_id",
+    "span_id",
+    "sequence",
+    "event_type",
+    "status",
+    "payload_digest",
+    "config_digest"
+  ],
+  "title": "event",
+  "type": "object"
+}

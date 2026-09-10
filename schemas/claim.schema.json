@@ -1,0 +1,85 @@
+{
+  "$id": "https://github.com/esatt10/pheasant-deep-research/schemas/claim.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "description": "One atomic extracted claim. `confidence_basis` decides eligibility: a researcher_inference claim may guide collection and can never be an expected-answer operand.",
+  "properties": {
+    "claim_id": {
+      "type": "string"
+    },
+    "claim_text": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "claim_type": {
+      "enum": [
+        "observation",
+        "result",
+        "method",
+        "definition",
+        "limitation",
+        "contradiction"
+      ]
+    },
+    "confidence_basis": {
+      "enum": [
+        "direct_text",
+        "structured_metadata",
+        "researcher_inference"
+      ]
+    },
+    "eligible": {
+      "type": "boolean"
+    },
+    "extracted_at": {
+      "type": "string"
+    },
+    "facet_ids": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "locator": {
+      "type": "string"
+    },
+    "quotation_digest": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "researcher_agent_id": {
+      "type": "string"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "source_id": {
+      "type": "string"
+    },
+    "subtopic_id": {
+      "type": "string"
+    },
+    "support": {
+      "enum": [
+        "supports",
+        "contradicts",
+        "qualifies",
+        "mentions"
+      ]
+    }
+  },
+  "required": [
+    "claim_id",
+    "claim_text",
+    "claim_type",
+    "source_id",
+    "locator",
+    "support",
+    "confidence_basis",
+    "eligible"
+  ],
+  "title": "claim",
+  "type": "object"
+}

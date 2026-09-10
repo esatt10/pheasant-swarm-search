@@ -216,3 +216,25 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# --- pheasant-swarm-lab ---------------------------------------------------
+# Run content is user data: prompts, retrieved passages, downloaded papers.
+runs/*
+!runs/.gitkeep
+
+# Resolved configuration and local pricing overrides.
+configs/experiment.yaml
+configs/models.yaml
+configs/metrics.yaml
+configs/proof-policy.yaml
+configs/pheasant-mcp.yaml
+configs/logging.yaml
+configs/topics.yaml
+configs/pricing.yaml
+
+.env
+.env.*
+!.env.example
+
+# uv
+.venv/

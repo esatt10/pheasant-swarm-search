@@ -1,0 +1,64 @@
+# The in-process mock region, used by `pheasant-lab demo` and the tests.
+#
+# It speaks the same MCP methods and carries the same tool names as
+# pheasant >= 0.12, so the handshake, the capability resolution, the retry
+# policy and the error translation are all genuinely exercised. What it is
+# not is Pheasant: BM25 over submitted documents, no vector arm, no graph.
+transport: mock
+url: ""
+command: ""
+token_env: PHEASANT_MCP_TOKEN
+protocol_version: "2026-07-28"
+timeout_seconds: 30
+connect_timeout_seconds: 5
+max_retries: 2
+retry_backoff_seconds: 0.05
+retry_backoff_max_seconds: 1.0
+
+knowledge_base: pheasant-lab
+source_name: swarm-lab-literature
+
+capabilities:
+  health: { tool: list_knowledge_bases, required: true }
+  ingest: { tool: submit_documents, required: true }
+  ingest_status: { tool: get_ingest_status, required: true }
+  ingest_acknowledge: { tool: acknowledge_ingest, required: false }
+  ingest_reconcile: { tool: reconcile_ingest, required: false }
+  sync: { tool: sync_source, required: false }
+  search: { tool: search_context, required: true }
+  fetch: { tool: get_file_summary, required: false }
+  write_memory: { tool: memory_write, required: false }
+  snapshot: { tool: seal_snapshot, required: false }
+  snapshot_get: { tool: get_snapshot, required: false }
+  describe_retrieval: { tool: describe_retrieval, required: false }
+  record_evidence: { tool: record_evidence, required: false }
+
+discovery:
+  verify_configured_tool_exists: true
+  verify_input_schema: true
+  fail_on_ambiguous_capability: true
+  allow_heuristic_name_matching: false
+
+argument_map:
+  knowledge_base_field: knowledge_base
+  search:
+    query: query
+    max_results: max_results
+    mode: mode
+    memory: memory
+    session: session
+    snapshot_id: snapshot_id
+    as_of: as_of
+  ingest:
+    documents: documents
+    source_name: source_name
+    submission_id: submission_id
+    document_path: relative_path
+    document_text: text
+    document_key: idempotency_key
+    document_metadata: metadata
+
+isolation:
+  refuse_shared_knowledge_base: false
+  require_dedicated_source: true
+  forbid_memory_writes_in_arms: [S0, C0, P0]

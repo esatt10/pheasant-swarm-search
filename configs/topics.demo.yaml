@@ -1,0 +1,23 @@
+# The offline demo topic.
+#
+# Three facets rather than six, and minimums scaled to the fixture pack in
+# tests/fixtures/literature. The pack is synthetic and says so in its own
+# header: a demo whose numbers looked like a finding would be worse than one
+# that plainly cannot be.
+topics:
+  - id: topic-tardigrade-radiotolerance
+    title: Molecular basis of tardigrade radiotolerance
+    seed_terms:
+      - tardigrade radiotolerance
+      - Dsup damage suppressor nucleosome
+      - DNA repair pathway expansion tardigrade
+      - tardigrade radiation survival dosimetry
+    date_range: { from: 2014-01-01, to: null }
+    facets:
+      - { id: mechanism-dsup, label: "Dsup protein and chromatin shielding", weight: 3 }
+      - { id: mechanism-repair, label: "DNA repair pathway expansion and flux", weight: 3 }
+      - { id: contested, label: "Contested survival claims and failed replications", weight: 2 }
+    source_authority:
+      family_key: [first_author_affiliation, corresponding_author]
+      preferred_types: [journal_article, review]
+      minimum_peer_reviewed: 2

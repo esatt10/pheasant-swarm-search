@@ -1,0 +1,48 @@
+# ---------------------------------------------------------------------------
+# Tracing and telemetry. Everything is local by default; remote export is
+# opt-in and configured independently.
+# ---------------------------------------------------------------------------
+
+logging:
+  level: INFO
+  format: text          # text | json
+  file: null            # null means stderr only
+
+tracing:
+  # Raw JSONL is append-only and authoritative. DuckDB is a disposable
+  # projection rebuilt from it; a projection error never mutates a raw trace.
+  raw_dir: raw
+  flush_every_event: true
+  fsync_on_flush: false
+  record_payload_digest: true
+  # Sequence numbers are monotonic per run and verified by `verify`.
+  verify_sequence_continuity: true
+
+  spans:
+    enabled: true
+    file: spans.jsonl
+    # W3C-shaped ids minted here so a row has a primary key with no SDK
+    # installed. When an OTLP SDK is present the span starts first and the row
+    # adopts its ids, so an exported span and a local row name one call.
+    adopt_otel_ids_when_available: true
+
+  mcp_transcript:
+    enabled: true
+    file: mcp-calls.redacted.jsonl
+    store_request_body: true
+    store_response_body: true
+    max_body_bytes: 65536
+    # Authorization headers and environment values are never persisted.
+    forbidden_headers: [authorization, proxy-authorization, cookie, x-api-key]
+
+projection:
+  backend: duckdb
+  file: projections/run.duckdb
+  rebuild_on_replay: true
+  verify_foreign_keys: true
+
+export:
+  # Any remote export is opt-in and independently configured.
+  otlp_enabled: false
+  otlp_endpoint: null
+  otlp_headers_env: null
