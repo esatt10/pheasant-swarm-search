@@ -1176,7 +1176,10 @@ def _latest_run(args: argparse.Namespace) -> str:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="pheasant-lab",
-        description="Pheasant Scientific Swarm Evaluation Lab",
+        description=(
+            "Pheasant Swarm Search: research a topic with parallel workers, build a "
+            "knowledge base with pheasant-kb, and measure its coverage and usefulness."
+        ),
     )
     parser.add_argument("--version", action="version", version=__version__)
     parser.add_argument("-v", "--verbose", action="store_true", help="debug logging")
@@ -1205,18 +1208,26 @@ def build_parser() -> argparse.ArgumentParser:
 
     plan = subparsers.add_parser("plan", help="project cost without model or ingest calls")
     common(plan, mutating=False)
-    plan.add_argument("--topic", default=None)
+    plan.add_argument(
+        "--topic", default=None, metavar="TOPIC_ID", help="topic ID from the topics file"
+    )
     plan.add_argument("--max-cost-usd", type=float, default=None)
     plan.add_argument("--json", action="store_true")
     plan.set_defaults(func=cmd_plan)
 
-    collect = subparsers.add_parser("collect", help="run collection and Pheasant ingestion")
+    collect = subparsers.add_parser(
+        "collect", help="search a topic and save source material in Pheasant"
+    )
     common(collect)
-    collect.add_argument("--topic", default=None)
+    collect.add_argument(
+        "--topic", default=None, metavar="TOPIC_ID", help="topic ID from the topics file"
+    )
     collect.add_argument("--force", action="store_true")
     collect.set_defaults(func=cmd_collect)
 
-    audit = subparsers.add_parser("audit", help="audit saturation and coverage")
+    audit = subparsers.add_parser(
+        "audit", help="check topic coverage, repeated sources, and remaining gaps"
+    )
     common(audit)
     audit.add_argument("--run", dest="run", required=True)
     audit.add_argument("--json", action="store_true")

@@ -1,9 +1,9 @@
-"""Pheasant Scientific Swarm Evaluation Lab.
+"""Pheasant Swarm Search.
 
-A hierarchical research swarm collects literature into a Pheasant knowledge
-region, freezes an evidence-linked benchmark, and compares isolated
-source-aware, prior-only, corpus-only, memory-enabled and tuned-search agents
-against it.
+A planner divides a topic into questions, research workers search literature
+in parallel, and a coverage auditor identifies gaps. Source material is saved
+in pheasant-kb for the next phase of a project. Optional benchmark comparisons
+measure how well fresh agents retrieve and answer from that knowledge base.
 
 The five questions this package keeps apart, and never blends into one score:
 collection, persistence, retrieval, answering, and learning.

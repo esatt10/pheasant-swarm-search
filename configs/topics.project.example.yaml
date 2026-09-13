@@ -1,0 +1,30 @@
+# Copy to configs/topics.yaml and set experiment.topics_file to that path.
+# --topic selects one id below; each collect command processes one topic.
+# Facets are the areas your project needs evidence for. Weight is importance.
+# The built-in swarm searches scholarly literature, including social research.
+topics:
+  - id: topic-battery-lifetime
+    title: Extending lithium-ion battery life in stationary energy storage
+    seed_terms:
+      - lithium ion battery calendar aging
+      - stationary battery cycle degradation
+      - battery thermal management lifetime
+    date_range: { from: 2015-01-01, to: null }
+    facets:
+      - { id: aging, label: "Calendar and cycle aging mechanisms", weight: 2 }
+      - { id: temperature, label: "Temperature and thermal management", weight: 2 }
+      - { id: operation, label: "Charge limits and operating strategies", weight: 1 }
+      - { id: uncertainty, label: "Conflicting results and limits of laboratory evidence", weight: 1 }
+
+  - id: topic-onboarding
+    title: Designing an effective onboarding program for remote employees
+    seed_terms:
+      - remote employee onboarding
+      - organizational socialization newcomer adjustment
+      - virtual teams mentoring role clarity
+    date_range: { from: 2015-01-01, to: null }
+    facets:
+      - { id: adjustment, label: "Newcomer adjustment and role clarity", weight: 2 }
+      - { id: mentoring, label: "Mentoring and social connection in remote teams", weight: 2 }
+      - { id: outcomes, label: "Onboarding outcomes and evaluation methods", weight: 1 }
+      - { id: uncertainty, label: "Conflicting findings and limits of the evidence", weight: 1 }

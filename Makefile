@@ -1,4 +1,4 @@
-# Pheasant Scientific Swarm Evaluation Lab
+# Pheasant Swarm Search
 #
 # Every target here is laptop-local. Nothing reaches a hosted database, a
 # message broker, or a remote telemetry collector.

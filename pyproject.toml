@@ -1,12 +1,12 @@
 [project]
 name = "pheasant-swarm-lab"
 version = "0.1.0"
-description = "Pheasant Scientific Swarm Evaluation Lab: hierarchical research swarms, a frozen evidence-linked benchmark, and paired arm comparison against a Pheasant knowledge region."
+description = "A hierarchical research swarm that searches literature, builds a reusable knowledge base with pheasant-kb, and measures coverage, retrieval, and answer quality."
 readme = "README.md"
 requires-python = ">=3.12"
 license = { file = "LICENSE" }
 authors = [{ name = "pheasant-swarm-lab contributors" }]
-keywords = ["mcp", "evaluation", "retrieval", "research-swarm", "pheasant"]
+keywords = ["research-swarm", "knowledge-base", "pheasant", "mcp", "retrieval", "evaluation"]
 classifiers = [
   "Programming Language :: Python :: 3.12",
   "Intended Audience :: Science/Research",
