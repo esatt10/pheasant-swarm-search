@@ -168,7 +168,10 @@ records. Do not count lines as unique sources or rewrite earlier rows.
 The live adapters collect metadata and abstracts. Full-text URLs and license
 fields may be present, but automatic full-paper acquisition is not implemented.
 Pheasant receives source documents; it does not receive the local claims ledger,
-benchmark answers, or evaluation reports as ordinary search content.
+benchmark answers, expected facts, matchers, or evaluation reports as ordinary
+search content. If optional evaluation is enabled, the lab publishes the frozen
+question text as Pheasant memory after scoring. This leaves useful open questions
+for the next project phase without publishing their answer keys.
 
 ## Use the knowledge in your next project phase
 
@@ -177,6 +180,11 @@ Or connect your next agent to the same MCP endpoint using Pheasant's
 [agent connection guide](https://github.com/esatt10/pheasant-kb/blob/main/docs/how-to/attach-to-coding-agent.md).
 The lab has no separate interactive `search` subcommand; Pheasant provides that
 interface.
+
+After an evaluated run, search for the topic wording to revisit the questions
+the benchmark used to probe the collection. The memory records carry the tag
+`benchmark-question`; they are prompts for further work, not stored answers.
+Their publication receipts are in `runs/RUN_ID/raw/question-memories.jsonl`.
 
 Give the next agent the endpoint, knowledge-base name, source name, topic, run
 ID, and audit gaps. A handoff prompt might be:

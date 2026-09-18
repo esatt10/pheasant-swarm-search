@@ -100,6 +100,12 @@ uv run python scripts/export_schemas.py               # after changing a record 
   answer terms (which the matcher requires), and `_harden` rebuilds any matcher
   the question would satisfy anyway. The leakage checker is the independent
   net, not the only one.
+- **Benchmark questions become memory only after evaluation.** Publishing them
+  sooner changes the retrieval system being measured. The post-evaluation
+  publisher sends question text and provenance to Pheasant, but never expected
+  facts, matchers, expected evidence IDs, arm answers, or scores. A later run on
+  the same knowledge base can see those memories; isolated repeats need a fresh
+  knowledge base or publication disabled.
 
 ## 5. Traps this repository has already fallen into
 

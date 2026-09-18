@@ -6,6 +6,9 @@ questions, workers search in parallel, and a coverage auditor identifies gaps.
 The swarm saves source material in
 [pheasant-kb](https://github.com/esatt10/pheasant-kb), so you or a fresh agent can
 use the evidence later to plan an experiment, write a proposal, or build a product.
+When you run the optional evaluation, its frozen research questions are saved as
+Pheasant memories after scoring, leaving a durable list of what the knowledge
+base was expected to serve without storing answer keys there.
 
 The lab runs on your laptop. Live research connects to literature providers, a
 model API, and your Pheasant instance. An included offline demo lets you try the
@@ -133,6 +136,11 @@ connect your next agent to its MCP endpoint, select the same knowledge base,
 and search the collected evidence. The [handoff example](docs/topics.md#use-the-knowledge-in-your-next-project-phase)
 shows a prompt and the exact information to carry forward. You can use the
 knowledge base after collection; the benchmark is an additional quality check.
+
+After evaluation, the benchmark questions themselves are available as Pheasant
+memories for follow-up work. They are published only after every comparison arm
+has answered, and expected facts, matchers, evidence IDs, answers, and scores
+remain in the local run artifacts.
 
 ## Understand performance without learning the jargon first
 

@@ -12,6 +12,7 @@ import json
 import os
 import platform
 import sys
+import time
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -36,6 +37,7 @@ RAW_FILES = (
     "ingest-receipts.jsonl",
     "questions.jsonl",
     "answers.jsonl",
+    "question-memories.jsonl",
     "proof-events.jsonl",
 )
 
@@ -256,7 +258,7 @@ class RunState:
             temp.write_text(
                 json.dumps(self.data, indent=2, sort_keys=True) + "\n", encoding="utf-8"
             )
-            os.replace(temp, self.path)
+            _replace_with_retry(temp, self.path)
         finally:
             if temp.exists():
                 temp.unlink(missing_ok=True)
@@ -269,7 +271,7 @@ def write_json(path: Path, payload: Any) -> None:
         temp.write_text(
             json.dumps(payload, indent=2, sort_keys=True, default=str) + "\n", encoding="utf-8"
         )
-        os.replace(temp, path)
+        _replace_with_retry(temp, path)
     finally:
         if temp.exists():
             temp.unlink(missing_ok=True)
@@ -277,6 +279,21 @@ def write_json(path: Path, payload: Any) -> None:
 
 def read_json(path: Path) -> Any:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _replace_with_retry(source: Path, destination: Path, *, attempts: int = 10) -> None:
+    """Finish an atomic write despite a short Windows sync/indexing lock."""
+
+    delay = 0.05
+    for attempt in range(attempts):
+        try:
+            os.replace(source, destination)
+            return
+        except PermissionError:
+            if attempt == attempts - 1:
+                raise
+            time.sleep(delay)
+            delay = min(delay * 2, 1.0)
 
 
 def write_checksums(paths: RunPaths) -> dict[str, str]:

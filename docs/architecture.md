@@ -135,10 +135,22 @@ snapshot for changes outside the memory section. A snapshot records a reference
 state and supports drift checks. It does not create an independently queryable
 historical copy of the whole corpus.
 
-Benchmark files, answers, reports, and refinement candidates stay outside the
-ordinary retrieval source. Memory and tuning are derived only from the
-designated learned cohort, so the held-out cohort can test transfer to questions
-that did not create those changes.
+During evaluation, benchmark files, questions, answers, reports, and refinement
+candidates stay outside the retrieval source. Memory and tuning are derived only
+from the designated learned cohort, so the held-out cohort can test transfer to
+questions that did not create those changes.
+
+After every arm has answered and scoring has finished, the lab publishes each
+frozen question to Pheasant as an organization-scoped memory. The memory contains
+the question text and provenance (question, topic, benchmark, and run IDs). It
+does not contain expected facts, matchers, expected evidence IDs, arm answers, or
+scores. This ordering makes the questions durable and searchable for the next
+project phase without letting them change the run that generated them.
+
+Those question memories are visible to later runs that reuse the same knowledge
+base. Use a fresh knowledge base for an isolated repeat experiment, or set
+`benchmark.persist_questions_to_pheasant: false`. The append-only publication
+receipts are recorded in `raw/question-memories.jsonl`.
 
 ## Traceability and reproducibility
 

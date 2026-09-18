@@ -54,6 +54,7 @@ stopping:
 
 benchmark:
   freeze_before_evaluation: true
+  persist_questions_to_pheasant: true
   questions_per_topic: 14
   composition:
     atomic_fact: 4

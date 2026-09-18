@@ -669,6 +669,7 @@ def cmd_evaluate(args: argparse.Namespace) -> int:
     from .evaluation.engine import EvaluationEngine
     from .evaluation.evidence import ProofLedger
     from .orchestration.state import rehydrate, research_package
+    from .pheasant.question_memory import BenchmarkQuestionPublisher
 
     session = resume_session(args, connect=True)
     try:
@@ -682,6 +683,13 @@ def cmd_evaluate(args: argparse.Namespace) -> int:
             for finding in findings:
                 print(f"  - {finding}")
             return EXIT_REFUSED
+        if config.benchmark.persist_questions_to_pheasant and (
+            session.capabilities is None or not session.capabilities.has("write_memory")
+        ):
+            raise MissingCapability(
+                "benchmark.persist_questions_to_pheasant is enabled, but this region "
+                "does not offer the configured write_memory capability"
+            )
 
         topic = config.topic(str(session.state.get("topic_id") or config.topics[0].id))
         state = _rehydrated(session, topic.id, rehydrate)
@@ -778,12 +786,39 @@ def cmd_evaluate(args: argparse.Namespace) -> int:
             limitations=limitations,
         )
         result = engine.run()
-        session.state.update(budget=session.ledger.snapshot())
-        session.state.mark_stage("evaluate", "completed", answers=len(result.answers))
+        question_memories: list[dict[str, Any]] = []
+        if config.benchmark.persist_questions_to_pheasant:
+            assert session.client is not None and session.capabilities is not None
+            publisher = BenchmarkQuestionPublisher(
+                session.client,
+                session.capabilities,
+                config.pheasant,
+                run_id=session.run_id,
+                benchmark_version=package.version,
+                tracer=session.tracer,
+            )
+            question_memories = [row.as_dict() for row in publisher.publish(package.questions)]
+        session.state.update(
+            budget=session.ledger.snapshot(),
+            question_memories={
+                "enabled": config.benchmark.persist_questions_to_pheasant,
+                "published": len(question_memories),
+                "benchmark_version": package.version,
+                "timing": "after_evaluation",
+            },
+        )
+        session.state.mark_stage(
+            "evaluate",
+            "completed",
+            answers=len(result.answers),
+            question_memories=len(question_memories),
+        )
         write_checksums(session.paths)
 
         print(f"evaluated {len(result.answers)} answers over {len(package.questions)} questions")
         print(f"hard gates: {result.gates.verdict.value}")
+        if config.benchmark.persist_questions_to_pheasant:
+            print(f"question memories: {len(question_memories)} published after evaluation")
         for arm, decision in sorted(result.non_inferiority.items()):
             print(
                 f"  {arm} rivals S0: {decision.get('rivals_specialist')} ({decision.get('status')})"

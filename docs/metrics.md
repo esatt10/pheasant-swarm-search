@@ -285,6 +285,15 @@ must not satisfy its own answer matcher, and held-out questions must not create
 the memory or query rules used to test them. Preserve those boundaries when
 editing prompts or extending the benchmark.
 
+With `benchmark.persist_questions_to_pheasant: true` (the default), `evaluate`
+publishes the frozen question text to Pheasant memory only after all arms have
+answered and the metrics are complete. It never publishes expected facts,
+matchers, expected evidence IDs, answers, or scores. This preserves the current
+run's isolation while keeping its research questions available for later work.
+The publication receipts are in `raw/question-memories.jsonl`. A later run
+against the same knowledge base can retrieve these memories, so use a fresh
+knowledge base or disable this setting when you need an isolated repeat.
+
 The configuration mentions `token_f1`, `embedding_alignment`, and
 `model_judge_score` as diagnostics. The current engine does not implement or
 emit those scores. A configured name is not a measured result.
@@ -325,6 +334,7 @@ Start with `reports/summary.md`, then use:
 | `metrics/per-query.jsonl` | Individual answer/retrieval formulas and evidence references |
 | `metrics/paired-deltas.csv` | Comparisons for inspection in a spreadsheet |
 | `metrics/gates.json` | Each required check and its evaluation status |
+| `raw/question-memories.jsonl` | Pheasant memory receipts for questions published after evaluation |
 
 For a demo run, use `--config configs/demo.yaml` and omit uv's `.env` option.
 Real performance claims require live evidence, sufficient paired samples, and

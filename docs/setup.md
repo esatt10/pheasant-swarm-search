@@ -99,9 +99,10 @@ set to `none`. Every lab role uses the fixed `replay` provider. The sample
 documents are synthetic tardigrade literature, not evidence to use in a project.
 
 **Checkpoint:** the final JSON prints `"setup": "PASS"`, 19 indexed documents,
-70 answers, and zero model cost. Search `Dsup` in the Pheasant UI to see the
-submitted material. Search works without a model; generated chat answers are
-not part of this check.
+70 answers, 14 question memories, and zero model cost. Search `Dsup` in the
+Pheasant UI to see the submitted material. The frozen evaluation questions are
+also stored as memories after scoring. Search works without a model; generated
+chat answers are not part of this check.
 
 The check runs health/readiness checks, `doctor`, `plan`, `collect`, `audit`,
 `freeze-benchmark`, `evaluate`, `replay`, `report`, and `verify`. It requires
@@ -124,8 +125,9 @@ docker compose -f deploy/stub/compose.yaml stop
 
 Start it again with the same `up -d --wait` command. The volumes retain
 documents, receipts, and memory. Running the check again tests the existing
-fixture collection; previous evaluation memory may still be present. Use a
-separate knowledge base for real research or a controlled performance study.
+fixture collection; previous evaluation and question memory may still be
+present. Use a separate knowledge base for real research or a controlled
+performance study.
 
 The profile is in [compose.yaml](../deploy/stub/compose.yaml), its validated
 Pheasant configuration in [pheasant.yaml](../deploy/stub/pheasant.yaml), and the

@@ -107,10 +107,17 @@ def main() -> int:
         raise RuntimeError("Core ingestion, leakage, and snapshot checks must pass.")
     answers = rows(run / "raw/answers.jsonl")
     questions = rows(run / "benchmark/questions.jsonl")
+    question_memories = rows(run / "raw/question-memories.jsonl")
     if len(answers) != len(questions) * len(config.arms):
         raise RuntimeError("Each arm must answer every fixture question.")
     if any(a.get("error") or a["status"] == "failed" for a in answers):
         raise RuntimeError("An answering arm encountered an execution error.")
+    if {row["question_id"] for row in question_memories} != {
+        row["question_id"] for row in questions
+    }:
+        raise RuntimeError("Every frozen question must be published to Pheasant memory.")
+    if any(not row.get("record_id") for row in question_memories):
+        raise RuntimeError("Every question memory must have a Pheasant record ID.")
     source_ids = {r["source_id"] for r in receipts}
     for arm in ("P0", "P1", "P2"):
         hits = [
@@ -130,6 +137,7 @@ def main() -> int:
         "run": run.name,
         "indexed_documents": len(receipts),
         "answers": len(answers),
+        "question_memories": len(question_memories),
         "model_cost_usd": 0,
         "experiment_gates": gates["verdict"],
         "limitation": "Synthetic fixture literature and replay models test setup, not model quality.",

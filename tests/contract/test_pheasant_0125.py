@@ -9,7 +9,8 @@ from types import SimpleNamespace
 import pytest
 
 from pheasant_lab.pheasant.ingestion import Ingestor
-from pheasant_lab.pheasant.protocol import parse_tool_result
+from pheasant_lab.pheasant.protocol import ProtocolError, parse_tool_result
+from pheasant_lab.pheasant.question_memory import BenchmarkQuestionPublisher
 from pheasant_lab.pheasant.receipts import IngestReceipt, parse_receipts
 from pheasant_lab.pheasant.retrieval import Retriever, SearchRequest, normalise_results
 
@@ -215,3 +216,46 @@ def test_full_file_reads_use_the_returned_path_source_and_same_principal(config)
         "principal": "reader",
     }
     assert client.calls[1][2]["question_id"] == "q"
+
+
+def test_benchmark_questions_become_memories_without_answer_material(config, question):
+    prompt, _expected_fact = question
+    client = RecordedClient(
+        {
+            "write_memory": {
+                "record": {"record_id": "mem-question"},
+                "created": True,
+                "outcome": "created",
+            }
+        }
+    )
+    publisher = BenchmarkQuestionPublisher(
+        client,
+        capabilities("write_memory"),
+        config.pheasant,
+        run_id="run-1",
+        benchmark_version="bench-1",
+    )
+    published = publisher.publish([prompt])
+    arguments = client.calls[0][1]
+    assert published[0].record_id == "mem-question"
+    assert prompt.text in arguments["text"]
+    assert "Dsup reduced" not in arguments["text"]
+    assert "matcher" not in arguments["text"].lower()
+    assert arguments["scope"] == "org"
+    assert arguments["sync"] is True
+    assert "benchmark-question" in arguments["tags"]
+
+
+def test_question_publication_refuses_a_write_without_a_record_id(config, question):
+    prompt, _expected_fact = question
+    publisher = BenchmarkQuestionPublisher(
+        RecordedClient({"write_memory": {"created": True, "outcome": "created"}}),
+        capabilities("write_memory"),
+        config.pheasant,
+        run_id="run-1",
+        benchmark_version="bench-1",
+    )
+
+    with pytest.raises(ProtocolError, match="returned no record_id"):
+        publisher.publish([prompt])

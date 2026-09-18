@@ -39,6 +39,7 @@ def test_the_run_produced_every_artifact_the_layout_promises(run: Path):
         "raw/ingest-receipts.jsonl",
         "raw/questions.jsonl",
         "raw/answers.jsonl",
+        "raw/question-memories.jsonl",
         "raw/proof-events.jsonl",
         "benchmark/benchmark-manifest.json",
         "benchmark/questions.jsonl",
@@ -145,6 +146,21 @@ def test_every_arm_answered_every_question(run: Path):
     assert set(by_arm) == {"S0", "C0", "P0", "P1", "P2"}
     for arm, covered in by_arm.items():
         assert covered == questions, f"{arm} did not answer every question"
+
+
+def test_questions_are_published_to_memory_only_after_every_arm_answered(run: Path):
+    questions = read_jsonl(run / "benchmark/questions.jsonl")
+    memories = read_jsonl(run / "raw/question-memories.jsonl")
+    assert {row["question_id"] for row in memories} == {row["question_id"] for row in questions}
+    assert all(row["published_after_evaluation"] is True for row in memories)
+    events = read_jsonl(run / "raw/events.jsonl")
+    last_answer = max(
+        event["sequence"] for event in events if event["event_type"] == "arm.answered"
+    )
+    publication = next(
+        event for event in events if event["event_type"] == "benchmark.questions_published"
+    )
+    assert publication["sequence"] > last_answer
 
 
 def test_the_pheasant_arms_never_saw_the_research_package(run: Path):

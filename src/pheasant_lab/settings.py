@@ -124,6 +124,9 @@ class CohortSplit(_Model):
 
 class BenchmarkSection(_Model):
     freeze_before_evaluation: bool = True
+    # Published only after every arm has answered, so the questions cannot
+    # leak into the benchmark that is measuring the corpus.
+    persist_questions_to_pheasant: bool = True
     questions_per_topic: int = 24
     composition: dict[str, int] = Field(
         default_factory=lambda: {
