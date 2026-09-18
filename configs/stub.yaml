@@ -1,20 +1,8 @@
-# ---------------------------------------------------------------------------
-# The offline demo.
-#
-#   uv run pheasant-lab demo --config configs/demo.yaml
-#
-# Fixture literature, the in-process mock region, and the deterministic replay
-# provider: no network, no key, no cost. It exercises the whole pipeline -
-# collection, ingestion, the index barrier, the freeze, five arms, the metric
-# engine, the gates, the projection and every report.
-#
-# What it does NOT do is measure Pheasant. The mock region is BM25 over what
-# was submitted, and the replay provider has no prior knowledge. The reports
-# say so themselves, in their limitations section.
-# ---------------------------------------------------------------------------
+# Real Pheasant, synthetic fixture literature, fixed replay models, no API keys.
+# Start deploy/stub/compose.yaml first. This tests setup, not model quality.
 
 experiment:
-  name: swarm-lab-demo
+  name: swarm-lab-pheasant-stub
   seed: 240904
   cost_budget_usd: 10.00
   runtime_budget_minutes: 30
@@ -23,7 +11,7 @@ experiment:
   models_file: configs/models.replay.yaml
   metrics_file: configs/metrics.demo.yaml
   proof_policy_file: configs/proof-policy.demo.yaml
-  pheasant_file: configs/pheasant-mock.yaml
+  pheasant_file: configs/pheasant-mcp.stub.yaml
   logging_file: configs/logging.example.yaml
 
 collection:

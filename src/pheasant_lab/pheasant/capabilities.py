@@ -89,6 +89,8 @@ class CapabilityMap:
 # schema, so a rename is caught before it costs money.
 EXPECTED_ARGUMENTS: dict[str, tuple[str, ...]] = {
     "health": (),
+    "list_sources": ("knowledge_base", "limit", "offset"),
+    "register_source": ("knowledge_base", "name", "source_type", "path"),
     "ingest": ("knowledge_base", "documents"),
     "ingest_status": ("knowledge_base",),
     "ingest_acknowledge": ("knowledge_base",),
@@ -110,6 +112,7 @@ EXPECTED_ARGUMENTS: dict[str, tuple[str, ...]] = {
 # accept - which it does not, because it is not one.
 TOOL_LEVEL_MAP_KEYS: dict[str, frozenset[str] | None] = {
     "search": None,  # every key names a search argument
+    "fetch": None,
     "ingest": frozenset({"documents", "source_name", "submission_id", "agent_id"}),
 }
 

@@ -10,6 +10,7 @@ repairing it.
 from __future__ import annotations
 
 import json
+import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -419,20 +420,42 @@ def project(
         target.unlink()
     connection = duckdb.connect(str(target))
     try:
+        # One rebuild is one transaction. Autocommitting every inserted row
+        # turns a small offline demo into thousands of disk flushes on Windows.
+        connection.execute("BEGIN TRANSACTION")
         for name, rows in tables.items():
             report.tables[name] = len(rows)
             if not rows:
                 connection.execute(f'CREATE TABLE "{name}" (empty_placeholder VARCHAR)')
                 continue
             columns = sorted({key for row in rows for key in row})
-            normalised = [[_scalar(row.get(column)) for column in columns] for row in rows]
-            connection.execute(
-                f'CREATE TABLE "{name}" (' + ", ".join(f'"{c}" VARCHAR' for c in columns) + ")"
-            )
-            placeholders = ", ".join("?" for _ in columns)
-            connection.executemany(f'INSERT INTO "{name}" VALUES ({placeholders})', normalised)
+            # Bulk-load normalized rows with an explicit schema. Thousands of
+            # parameter-bound inserts are very slow on some Windows installs,
+            # even inside a transaction. The temporary file is derived data;
+            # raw JSONL stays untouched, and null columns remain VARCHAR.
+            with tempfile.NamedTemporaryFile(
+                mode="w", encoding="utf-8", suffix=".jsonl", dir=target.parent, delete=False
+            ) as stream:
+                temporary = Path(stream.name)
+                try:
+                    for row in rows:
+                        stream.write(
+                            json.dumps({column: _scalar(row.get(column)) for column in columns})
+                            + "\n"
+                        )
+                except BaseException:
+                    stream.close()
+                    temporary.unlink(missing_ok=True)
+                    raise
+            try:
+                connection.read_json(
+                    str(temporary), columns=dict.fromkeys(columns, "VARCHAR")
+                ).create(name)
+            finally:
+                temporary.unlink(missing_ok=True)
         if verify_foreign_keys:
             report.findings.extend(_foreign_keys(tables))
+        connection.execute("COMMIT")
     finally:
         connection.close()
     report.database = str(target)

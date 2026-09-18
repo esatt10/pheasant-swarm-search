@@ -2,9 +2,13 @@
 
 [Back to the README](../README.md) · [Topic examples](topics.md) · [Performance guide](metrics.md)
 
-The **demo** uses simulated services and costs nothing to run. **Live collection**
-also needs a running Pheasant instance and a model API account. You only need to
-install the lab once.
+Install the lab once, then choose a starting point:
+
+| Route | What you need | What it proves |
+|---|---|---|
+| Offline demo (step 2) | Python and uv | The workflow runs with a simulated knowledge base. |
+| Real Pheasant, no model (step 2b) | Python, uv, and Docker | Documents reach a real database, become searchable, and flow through all five arms. |
+| Your own research (steps 3–7) | Pheasant and a model API account | The swarm searches live literature for your topic. |
 
 ## 1. Install the lab
 
@@ -66,10 +70,69 @@ checks can remain incomplete. Read the output and reports. An ACL check, for
 example, cannot pass when the mock provides no access-control enforcement.
 Exit code `2` means the command refused to proceed; inspect the error message.
 
-The demo ignores the lab's `.env` file, but exported environment variables can
-still override model defaults. Use a clean terminal without exported live model
-settings if you previously configured those. Demo scores measure the mock and
-synthetic fixture, and do not establish live search or model performance.
+The demo uses fixed replay model settings and ignores the lab's `.env` file.
+Exported model settings cannot select a paid provider in this configuration.
+Demo scores measure the mock and synthetic fixture, and do not establish live
+search or model performance.
+
+## 2b. Test real Pheasant without a model
+
+Install and start [Docker Desktop](https://docs.docker.com/get-started/get-docker/)
+or Docker Engine with Compose. From this repository's root, run these commands
+in PowerShell, macOS Terminal, or a Linux shell:
+
+```text
+docker compose -f deploy/stub/compose.yaml up -d --wait
+uv run python scripts/check_pheasant_setup.py
+```
+
+The first command downloads Pheasant **0.12.5** if needed and waits for it to
+start. The second runs the setup check. Allow a few minutes; it prints each
+stage and saves detailed logs rather than flooding your terminal with tool calls.
+No `.env`, model download, model account, API key, or pricing edits are needed.
+
+Open **<http://127.0.0.1:8766>**. The knowledge base is **`pheasant-swarm-stub`**;
+the MCP endpoint is **`http://127.0.0.1:8766/mcp`**. This profile uses its own
+Docker volumes and port, so another service on port 8765 can keep running.
+Pheasant uses SQLite text search, with embeddings disabled and its assistant
+set to `none`. Every lab role uses the fixed `replay` provider. The sample
+documents are synthetic tardigrade literature, not evidence to use in a project.
+
+**Checkpoint:** the final JSON prints `"setup": "PASS"`, 19 indexed documents,
+70 answers, and zero model cost. Search `Dsup` in the Pheasant UI to see the
+submitted material. Search works without a model; generated chat answers are
+not part of this check.
+
+The check runs health/readiness checks, `doctor`, `plan`, `collect`, `audit`,
+`freeze-benchmark`, `evaluate`, `replay`, `report`, and `verify`. It requires
+indexed receipts, matching content hashes, source-linked retrieval, all arms
+completing, and intact run files. Its output names the report and evidence
+folder under `runs/setup-check-.../`.
+
+**Setup success and experiment quality are separate results.** `verify` can
+return `1` because experiment gates are `INCOMPLETE` or `FAIL`. The setup check
+still requires the core ingestion, benchmark-leakage, and snapshot gates to
+pass, and rejects structural or execution failures. Scores from replay models
+do not establish model quality; ACL and stale-memory checks can lack evidence.
+Read [the performance guide](metrics.md) before interpreting those scores.
+
+Stop the service when finished:
+
+```text
+docker compose -f deploy/stub/compose.yaml stop
+```
+
+Start it again with the same `up -d --wait` command. The volumes retain
+documents, receipts, and memory. Running the check again tests the existing
+fixture collection; previous evaluation memory may still be present. Use a
+separate knowledge base for real research or a controlled performance study.
+
+The profile is in [compose.yaml](../deploy/stub/compose.yaml), its validated
+Pheasant configuration in [pheasant.yaml](../deploy/stub/pheasant.yaml), and the
+lab configuration in [stub.yaml](../configs/stub.yaml). Pheasant's setup wizard
+generated the server configuration from [answers.json](../deploy/stub/answers.json).
+To change it, edit the answers and follow the regeneration instructions in
+[the profile README](../deploy/stub/README.md).
 
 ## 3. Start Pheasant for a live collection
 
@@ -255,7 +318,9 @@ freeze/evaluate/report commands. Reports require evaluation output;
 | API key is not set | Fill the matching key in `.env` and put `--env-file .env` immediately after `uv run`. |
 | Model has no price | Add its exact ID and real prices to the file named by `MODEL_PRICING_FILE`. |
 | Unauthorized or unsupported model request | Check account access, model ID, response-format support, and reasoning settings. `doctor` does not test model calls. |
-| Cannot connect to MCP | Keep Pheasant running; check the URL ends in `/mcp`, the port matches, and the token is correct. |
+| Cannot connect to MCP | Keep Pheasant running; check the URL ends in `/mcp`, the port matches, and the token is correct. The stub profile uses port **8766**. |
+| Docker cannot start / port 8766 is occupied | Start Docker Desktop; inspect `docker compose -f deploy/stub/compose.yaml ps` and `logs --tail 50`. If changing the host port, also change the URL in `configs/pheasant-mcp.stub.yaml`. |
+| Setup check fails | Open the stage log under the printed `runs/setup-check-.../` folder. Restarting the service preserves its volumes; do not delete volumes to troubleshoot a connection error. |
 | Missing tool or invalid configured argument | Compare `configs/pheasant-mcp.example.yaml` with the server's advertised tools. Copy it to `configs/pheasant-mcp.yaml`, set `experiment.pheasant_file` to that path, and edit the map. |
 | Unknown knowledge base / rejected source | Use the knowledge-base name registered in Pheasant and a new source name dedicated to the lab. |
 | Few sources or no abstracts | Review `raw/errors.jsonl`, source rejection reasons, and topic vocabulary. Provider construction does not guarantee live access or abstract availability. |

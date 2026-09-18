@@ -153,6 +153,7 @@ class Ingestor:
         self.run_id = run_id
         self.ledger = ledger or ReceiptLedger()
         self.tracer = tracer
+        self._submission_directory: str | None = None
         self._argument_map: dict[str, str] = dict(config.argument_map.get("ingest") or {})
         self._kb_field = str(config.argument_map.get("knowledge_base_field", "knowledge_base"))
 
@@ -199,6 +200,8 @@ class Ingestor:
             stage="ingest",
         )
         payload = outcome.result.payload() if outcome.result else {}
+        if isinstance(payload, Mapping) and payload.get("directory"):
+            self._submission_directory = str(payload["directory"])
         receipts = parse_receipts(
             payload if isinstance(payload, Mapping | list) else [],
             run_id=self.run_id,
@@ -232,6 +235,7 @@ class Ingestor:
     def sync(self, *, mode: str = "incremental") -> dict[str, Any]:
         if not self.capabilities.has("sync"):
             return {"skipped": "no sync capability configured"}
+        self._register_submission_source()
         outcome = self.client.call(
             self.capabilities.tool("sync"),
             {
@@ -243,6 +247,54 @@ class Ingestor:
             stage="index",
         )
         return _as_mapping(outcome.result.payload() if outcome.result else {})
+
+    def _register_submission_source(self) -> None:
+        """Register the server's intake directory without replacing another source."""
+
+        if not self._submission_directory:
+            return  # Some regions, including the mock, index submissions directly.
+        if not self.capabilities.has("list_sources") or not self.capabilities.has(
+            "register_source"
+        ):
+            raise RuntimeError(
+                "This region requires an indexed submission source. Configure the "
+                "list_sources and register_source capabilities before collecting."
+            )
+        offset = 0
+        while True:
+            outcome = self.client.call(
+                self.capabilities.tool("list_sources"),
+                {self._kb_field: self.config.knowledge_base, "limit": 100, "offset": offset},
+                idempotent=True,
+                stage="index",
+            )
+            payload = _as_mapping(outcome.result.payload() if outcome.result else {})
+            sources = payload.get("sources")
+            if not isinstance(sources, list):
+                raise RuntimeError("Cannot verify existing sources: list_sources returned no list.")
+            for source in sources:
+                if source.get("name") != self.config.source_name:
+                    continue
+                if source.get("path") != self._submission_directory:
+                    raise RuntimeError(
+                        f"Source {self.config.source_name!r} already indexes another path; "
+                        "choose a new dedicated source_name for the lab."
+                    )
+                return
+            if len(sources) < 100:
+                break
+            offset += len(sources)
+        self.client.call(
+            self.capabilities.tool("register_source"),
+            {
+                self._kb_field: self.config.knowledge_base,
+                "name": self.config.source_name,
+                "source_type": "document_folder",
+                "path": self._submission_directory,
+            },
+            idempotent=False,
+            stage="index",
+        )
 
     def acknowledge(self, submission_id: str | None = None) -> dict[str, Any]:
         """Cross the index barrier from what the region *holds*.
@@ -260,12 +312,26 @@ class Ingestor:
             self.capabilities.tool("ingest_acknowledge"), arguments, idempotent=True, stage="index"
         )
         payload = _as_mapping(outcome.result.payload() if outcome.result else {})
-        for row in payload.get("receipts", []) or payload.get("acknowledged", []) or []:
+        rows = payload.get("receipts", payload.get("acknowledged", []))
+        if not isinstance(rows, list):
+            # Pheasant 0.12.5 acknowledges a count; query the actual dispositions.
+            # Fetch by key so a server's listing limit cannot hide this run's items.
+            rows = [
+                row
+                for receipt in self.ledger.receipts
+                if submission_id is None or receipt.submission_id == submission_id
+                for row in self.ingest_status(idempotency_key=receipt.idempotency_key).get(
+                    "receipts", []
+                )
+            ]
+        for row in rows:
             if not isinstance(row, Mapping) or not row.get("idempotency_key"):
                 continue
             key = str(row["idempotency_key"])
             self.ledger.acknowledge(
-                key, status=str(row.get("status", "indexed")), artifact_id=row.get("artifact_id")
+                key,
+                status=str(row.get("status") or row.get("disposition") or "unknown"),
+                artifact_id=row.get("artifact_id"),
             )
             receipt = self.ledger.get(key)
             if receipt is not None and self.tracer is not None:

@@ -242,6 +242,8 @@ def _restore_spend(ledger: CostLedger, paths: RunPaths) -> None:
 
 
 def _connect(session: Session, args: argparse.Namespace) -> None:
+    from .pheasant.receipts import fold_receipts
+
     config = session.config
     token = os.environ.get(config.pheasant.token_env) or None
     if config.pheasant.transport == "mock" or getattr(args, "mock", False):
@@ -278,7 +280,17 @@ def _connect(session: Session, args: argparse.Namespace) -> None:
         client, capabilities, config.pheasant, run_id=session.run_id, tracer=session.tracer
     )
     session.retriever = Retriever(
-        client, capabilities, config.pheasant, store_text=config.privacy.store_response_text
+        client,
+        capabilities,
+        config.pheasant,
+        store_text=config.privacy.store_response_text,
+        artifact_sources={
+            str(row["artifact_id"]): str(row["source_id"])
+            for row in fold_receipts(
+                read_jsonl(session.paths.raw / "ingest-receipts.jsonl")
+            ).values()
+            if row.get("artifact_id") and row.get("source_id")
+        },
     )
 
 
@@ -1013,6 +1025,11 @@ def _provider_limitations(config: LabConfig) -> list[str]:
         limitations.append(
             "The run answered against the in-process mock region: BM25 only, no vector or graph "
             "arm. It measures the plumbing, not Pheasant."
+        )
+    if config.collection.providers == ["fixtures"]:
+        limitations.append(
+            "Collection used synthetic fixture literature. These documents exercise setup; "
+            "they are not scientific evidence and do not measure live discovery quality."
         )
     return limitations
 

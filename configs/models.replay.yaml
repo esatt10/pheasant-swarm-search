@@ -1,0 +1,102 @@
+# Fixed replay providers: no environment variable can select a paid model here.
+models:
+  orchestrator:
+    provider: replay
+    model: replay:orchestrator
+    reasoning_effort: null
+    temperature: 0
+    max_output_tokens: 6000
+    tool_call_limit: 30
+    criteria:
+      prioritize: [planning, gap_detection, stop_decisions]
+      require_structured_output: true
+
+  planner:
+    provider: replay
+    model: replay:orchestrator
+    reasoning_effort: null
+    temperature: 0
+    max_output_tokens: 4000
+    tool_call_limit: 8
+    criteria:
+      prioritize: [terminology_expansion, facet_decomposition]
+      require_structured_output: true
+      no_answer_generation: true
+
+  researcher:
+    provider: replay
+    model: replay:researcher
+    reasoning_effort: null
+    temperature: 0.1
+    max_output_tokens: 4500
+    tool_call_limit: 24
+    criteria:
+      prioritize: [recall, provenance_discipline, contradiction_detection]
+      require_structured_output: true
+
+  auditor:
+    provider: replay
+    model: replay:orchestrator
+    reasoning_effort: null
+    temperature: 0
+    max_output_tokens: 3000
+    tool_call_limit: 4
+    criteria:
+      prioritize: [gap_detection, duplication_detection]
+      require_structured_output: true
+
+  benchmark_builder:
+    provider: replay
+    model: replay:benchmark
+    reasoning_effort: null
+    temperature: 0
+    max_output_tokens: 6000
+    criteria:
+      require_structured_output: true
+      require_expected_evidence: true
+
+  specialist:
+    provider: replay
+    model: replay:specialist
+    reasoning_effort: null
+    temperature: 0
+    max_output_tokens: 5000
+
+  control:
+    provider: replay
+    model: replay:control
+    reasoning_effort: null
+    temperature: 0
+    max_output_tokens: 5000
+    criteria:
+      no_prior_context: true
+      no_tools: true
+
+  test_agent:
+    provider: replay
+    model: replay:test-agent
+    reasoning_effort: null
+    temperature: 0
+    max_output_tokens: 5000
+    criteria:
+      no_prior_context: true
+      only_pheasant_tools: true
+      citations_required: true
+
+pricing:
+  source: configs/pricing.example.yaml
+  fail_when_model_price_missing: true
+
+budget:
+  # Shares of experiment.cost_budget_usd. They must sum to 1.0.
+  allocation:
+    planning: 0.10
+    collection: 0.40
+    benchmark: 0.10
+    evaluation: 0.30
+    reserve: 0.10
+  # A call reserves its worst case before it is made and reconciles after.
+  reserve_output_at_max_tokens: true
+  # Tool calls a role may make are already capped per role above; this is the
+  # cost the reservation assumes for each one when the tool is priced.
+  assumed_tool_call_output_tokens: 400

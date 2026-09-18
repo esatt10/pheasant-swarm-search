@@ -1,0 +1,19 @@
+name: pheasant-swarm-stub
+
+services:
+  pheasant:
+    image: ghcr.io/esatt10/pheasant:0.12.5
+    ports:
+      - "127.0.0.1:8766:8765"
+    volumes:
+      - ./pheasant.yaml:/config/pheasant.yaml:ro
+      - workspace:/workspace
+      - state:/state
+      - memory:/memory
+      - exports:/exports
+
+volumes:
+  workspace:
+  state:
+  memory:
+  exports:

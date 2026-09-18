@@ -180,6 +180,13 @@ def parse_receipts(
 
     if isinstance(payload, Mapping):
         rows = payload.get("receipts") or payload.get("items") or payload.get("results") or []
+        if not rows:
+            rows = [
+                row
+                for group in ("accepted", "rejected", "failed")
+                for row in (payload[group] if isinstance(payload.get(group), list) else [])
+                if isinstance(row, Mapping)
+            ]
         submission_id = payload.get("submission_id", submission_id)
     else:
         rows = list(payload)
@@ -202,9 +209,7 @@ def parse_receipts(
                 artifact_id=_opt(row, "artifact_id", "artifact"),
                 document_id=_opt(row, "document_id", "document"),
                 content_digest=(requested_digests or {}).get(key),
-                accepted_content_digest=_opt(
-                    row, "content_digest", "accepted_content_digest", "digest"
-                ),
+                accepted_content_digest=_receipt_digest(row),
                 deduplicated=bool(row.get("deduplicated") or row.get("folded") or False),
                 dedup_outcome=_opt(row, "dedup_outcome", "outcome"),
                 server_trace_id=_opt(row, "trace_id", "server_trace_id"),
@@ -216,6 +221,14 @@ def parse_receipts(
             )
         )
     return receipts
+
+
+def _receipt_digest(row: Mapping[str, Any]) -> str | None:
+    value = _opt(row, "content_digest", "accepted_content_digest", "digest")
+    if value:
+        return value
+    sha256 = _opt(row, "content_sha256")
+    return f"sha256:{sha256.removeprefix('sha256:')}" if sha256 else None
 
 
 def fold_receipts(rows: Iterable[Mapping[str, Any]]) -> dict[str, dict[str, Any]]:

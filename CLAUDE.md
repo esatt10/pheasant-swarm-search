@@ -81,10 +81,11 @@ uv run python scripts/export_schemas.py               # after changing a record 
   offers a pin.** A pinned search is answered from that state *or refused*,
   and `P1`'s own treatment moves the snapshot's memory section. The snapshot
   still guards `P1`/`P2`: the drift check fails the run if any section other
-  than `memory` moved. pheasant >= 0.12 exposes `snapshot_id` and a
-  corpus-level `as_of` on its HTTP surface and **not** on `search_context`, so
-  the shipped example config maps neither, `Retriever.supports_pinning` is
-  false there, and the run records a limitation saying `P0` ran unpinned.
+  than `memory` moved. Earlier Pheasant builds exposed the pin on HTTP only.
+  The general live example maps neither optional argument for compatibility.
+  The tested 0.12.5 image advertises `snapshot_id` and `as_of` on MCP, so
+  `configs/pheasant-mcp.stub.yaml` maps both and pins P0. Doctor checks the
+  actual advertised schema before accepting either configuration.
 - **An argument absent from `argument_map` is one the lab does not send.**
   That is how a capability the region lacks is declared, and `doctor` checks
   every mapped name against the tool's advertised schema

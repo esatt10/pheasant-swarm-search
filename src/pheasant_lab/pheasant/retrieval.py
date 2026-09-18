@@ -9,6 +9,7 @@ that looks like a measurement is how a metric ends up describing the adapter.
 
 from __future__ import annotations
 
+import time
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import Any
@@ -218,11 +219,13 @@ class Retriever:
         config: PheasantFile,
         *,
         store_text: bool = True,
+        artifact_sources: Mapping[str, str] | None = None,
     ) -> None:
         self.client = client
         self.capabilities = capabilities
         self.config = config
         self.store_text = store_text
+        self.artifact_sources = dict(artifact_sources or {})
         self._argument_map: dict[str, str] = dict(config.argument_map.get("search") or {})
         self._kb_field = str(config.argument_map.get("knowledge_base_field", "knowledge_base"))
 
@@ -241,6 +244,7 @@ class Retriever:
         return "as_of" in self._argument_map
 
     def search(self, request: SearchRequest) -> SearchResponse:
+        started = time.monotonic()
         tool = self.capabilities.tool("search")
         arguments = request.as_arguments(
             self._argument_map, self._kb_field, self.config.knowledge_base
@@ -255,11 +259,30 @@ class Retriever:
         )
         payload = outcome.result.payload() if outcome.result else {}
         body = payload if isinstance(payload, Mapping) else {}
-        results = normalise_results(body, request)
+        results = normalise_results(body, request, artifact_sources=self.artifact_sources)
+        # Pheasant search returns 500-character previews. Read the returned
+        # file through MCP, including its principal, to give the answering arm
+        # actual evidence rather than only the document's metadata header.
+        if self.capabilities.has("fetch") and self.config.argument_map.get("fetch"):
+            for row, result in zip(body.get("results", []), results, strict=False):
+                provenance = row.get("provenance") or {}
+                path = row.get("relative_path") or provenance.get("relative_path")
+                if not path:
+                    continue
+                fetched = self.fetch(
+                    str(path),
+                    source_name=provenance.get("source_id"),
+                    principal=request.principal,
+                    question_id=request.question_id,
+                    arm_id=request.arm_id,
+                )
+                if fetched and fetched.get("content"):
+                    result.matched_text = str(fetched["content"])
+                    result.matched_text_digest = digest_text(result.matched_text)
         return SearchResponse(
             request=request,
             results=results,
-            latency_ms=outcome.duration_ms,
+            latency_ms=(time.monotonic() - started) * 1000.0,
             server_trace_id=outcome.server_trace_id,
             snapshot_id=str(body.get("snapshot_id") or request.snapshot_id or "") or None,
             graph_generation=_first_str(body, "graph_generation", "generation_id"),
@@ -282,25 +305,47 @@ class Retriever:
         payload = outcome.result.payload() if outcome.result else {}
         return dict(payload) if isinstance(payload, Mapping) else {}
 
-    def fetch(self, artifact_id: str) -> dict[str, Any] | None:
+    def fetch(
+        self,
+        path: str,
+        *,
+        source_name: str | None = None,
+        principal: str | None = None,
+        question_id: str | None = None,
+        arm_id: str | None = None,
+    ) -> dict[str, Any] | None:
         if not self.capabilities.has("fetch"):
             return None
+        mapping = self.config.argument_map.get("fetch") or {}
+        if principal and "principal" not in mapping:
+            return None  # Keep the scoped preview; never broaden a principal-scoped read.
+        arguments: dict[str, Any] = {self._kb_field: self.config.knowledge_base}
+        for key, value in {
+            "path": path,
+            "source_name": source_name,
+            "principal": principal,
+        }.items():
+            if value is not None and key in mapping:
+                arguments[mapping[key]] = value
         outcome = self.client.call(
             self.capabilities.tool("fetch"),
-            {
-                self._kb_field: self.config.knowledge_base,
-                "artifact_id": artifact_id,
-                "file_path": artifact_id,
-            },
+            arguments,
             idempotent=True,
             stage="retrieval",
+            question_id=question_id,
+            arm_id=arm_id,
             allow_error=True,
         )
         payload = outcome.result.payload() if outcome.result else None
         return dict(payload) if isinstance(payload, Mapping) else None
 
 
-def normalise_results(body: Mapping[str, Any], request: SearchRequest) -> list[SearchResult]:
+def normalise_results(
+    body: Mapping[str, Any],
+    request: SearchRequest,
+    *,
+    artifact_sources: Mapping[str, str] | None = None,
+) -> list[SearchResult]:
     """Flatten whatever shape the region returned into ranked rows."""
 
     rows = body.get("results") or body.get("hits") or body.get("chunks") or []
@@ -313,19 +358,29 @@ def normalise_results(body: Mapping[str, Any], request: SearchRequest) -> list[S
         provenance = row.get("provenance") if isinstance(row.get("provenance"), Mapping) else {}
         memory = row.get("memory") if isinstance(row.get("memory"), Mapping) else {}
         text = _first_str(row, "text", "content", "snippet", "matched_text")
+        if not text:
+            text = "\n\n".join(
+                str(chunk.get("text") or chunk.get("text_preview") or "")
+                for chunk in row.get("chunks", [])
+                if isinstance(chunk, Mapping)
+            ) or _first_str(row, "summary")
+        artifact_id = _first_str(row, "artifact_id", "id", "node_id", "chunk_id")
         results.append(
             SearchResult(
                 rank=int(row.get("rank") or index),
-                artifact_id=_first_str(row, "artifact_id", "id", "node_id", "chunk_id"),
+                artifact_id=artifact_id,
                 content_digest=_first_str(row, "content_digest", "digest")
                 or (provenance.get("content_digest") if provenance else None),
                 score=_as_float(row.get("score") if "score" in row else row.get("relevance")),
-                source_id=_first_str(row, "lab_source_id", "source_id")
+                source_id=_first_str(row, "lab_source_id")
+                or (artifact_sources or {}).get(artifact_id or "")
+                or _metadata_source_id(row)
+                or _first_str(row, "source_id")
                 or (str(provenance.get("source_id")) if provenance.get("source_id") else None)
                 or _metadata_source_id(row),
                 locator=_first_str(row, "locator", "section", "path")
                 or (str(provenance.get("path")) if provenance.get("path") else None),
-                retrieval_arm=_first_str(row, "arm", "retrieval_arm", "matched_by"),
+                retrieval_arm=_first_str(row, "arm", "retrieval_arm", "matched_by", "retrieved_by"),
                 contributing_arms=[
                     str(a) for a in (row.get("contributing_arms") or row.get("arms") or [])
                 ],

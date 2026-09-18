@@ -12,6 +12,18 @@ from pheasant_lab.settings import ConfigError, apply_override, interpolate, load
 REPO = Path(__file__).resolve().parents[2]
 
 
+@pytest.mark.parametrize("filename", ["demo.yaml", "stub.yaml"])
+def test_no_model_examples_cannot_select_paid_models_from_the_environment(filename):
+    resolved = load_config(
+        REPO / "configs" / filename,
+        env_file=None,
+        environ={"MODEL_PROVIDER": "openai", "RESEARCHER_MODEL": "paid-model"},
+        project_root=REPO,
+    )
+    assert {spec.provider for spec in resolved.models.values()} == {"replay"}
+    assert all(spec.model.startswith("replay:") for spec in resolved.models.values())
+
+
 def test_interpolation_uses_environment_then_default():
     missing: list[str] = []
     assert interpolate("${A}", {"A": "set"}, missing) == "set"

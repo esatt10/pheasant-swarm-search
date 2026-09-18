@@ -93,6 +93,12 @@ are available. Evaluation uses receipt and reconciliation evidence in its gates;
 inspect indexed status separately from acceptance. Missing capabilities limit
 what can be verified and must remain visible.
 
+For Pheasant's submission API, the lab registers the returned intake directory
+as a document source before syncing. It checks existing source names first and
+refuses to replace a source that points elsewhere. Numeric acknowledgment
+counts are followed by per-item status reads; a count alone cannot establish
+which document crossed the indexing barrier.
+
 Extracted claims are used by the local benchmark builder. The searchable
 document is built from the source's metadata and abstract; it is not an
 agent-written synthesis of all claims. Full-paper acquisition is not currently
@@ -105,6 +111,14 @@ Tool names and argument spellings are in
 is not sent. The shipped search map omits `snapshot_id` and `as_of`, so the
 default live adapter does not pin searches even if a newer server offers that
 capability. A custom map must match the connected server's actual schema.
+The separate no-model profile pins Pheasant 0.12.5 and enables both arguments,
+which that version advertises on MCP.
+
+Pheasant search returns short chunk previews. The live adapter reads the
+selected files through `get_file_summary`, preserving the search principal,
+and links returned artifact IDs to lab source IDs through ingestion receipts.
+Only identifiers cross this boundary; the Pheasant arms still receive their
+passage text from Pheasant, without access to local research answers.
 
 ## Optional evaluation and isolation
 

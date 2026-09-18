@@ -94,6 +94,18 @@ The last output includes `demo run: run-...`. Open
 demo output. See [setup and troubleshooting](docs/setup.md) for installation
 help and how to read the result.
 
+To test **real Pheasant with no model**, start Docker and run:
+
+```text
+docker compose -f deploy/stub/compose.yaml up -d --wait
+uv run python scripts/check_pheasant_setup.py
+```
+
+This uses fixture documents and replay models, verifies storage and retrieval,
+and runs all five comparison arms. Open Pheasant at <http://127.0.0.1:8766>.
+See [the no-model setup walkthrough](docs/setup.md#2b-test-real-pheasant-without-a-model)
+for expected output, logs, and how to stop and restart it.
+
 ## Build a knowledge base for your own project
 
 Follow the [live setup guide](docs/setup.md) once to connect Pheasant, configure

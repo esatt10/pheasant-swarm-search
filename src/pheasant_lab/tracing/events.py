@@ -207,29 +207,29 @@ class EventLog:
         with self._lock:
             self._sequence += 1
             sequence = self._sequence
-        event = Event(
-            event_id=ids.event_id(self.run_id, sequence, payload_digest),
-            occurred_at=occurred_at or isonow(),
-            recorded_at=isonow(),
-            run_id=self.run_id,
-            trace_id=trace_id,
-            span_id=span_id,
-            parent_span_id=parent_span_id,
-            sequence=sequence,
-            event_type=event_type,
-            status=status,
-            payload=body,
-            payload_digest=payload_digest,
-            config_digest=self.config_digest,
-            agent_id=agent_id,
-            agent_role=agent_role,
-            topic_id=topic_id,
-            question_id=question_id,
-            arm_id=arm_id,
-            input_refs=list(input_refs or []),
-            output_refs=list(output_refs or []),
-        )
-        self._writer.append(event.as_dict())
+            event = Event(
+                event_id=ids.event_id(self.run_id, sequence, payload_digest),
+                occurred_at=occurred_at or isonow(),
+                recorded_at=isonow(),
+                run_id=self.run_id,
+                trace_id=trace_id,
+                span_id=span_id,
+                parent_span_id=parent_span_id,
+                sequence=sequence,
+                event_type=event_type,
+                status=status,
+                payload=body,
+                payload_digest=payload_digest,
+                config_digest=self.config_digest,
+                agent_id=agent_id,
+                agent_role=agent_role,
+                topic_id=topic_id,
+                question_id=question_id,
+                arm_id=arm_id,
+                input_refs=list(input_refs or []),
+                output_refs=list(output_refs or []),
+            )
+            self._writer.append(event.as_dict())
         return event
 
     def close(self) -> None:
