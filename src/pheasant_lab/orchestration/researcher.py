@@ -139,12 +139,14 @@ class Researcher:
             for query in queries:
                 if len(found) >= max_sources:
                     break
+                per_provider = self.config.collection.max_results_per_provider
                 for provider in self._providers_for(subtopic):
                     if len(found) >= max_sources:
                         break
-                    for candidate in self._search(
-                        provider, query, subtopic, result, max_sources - len(found)
-                    ):
+                    limit = max_sources - len(found)
+                    if per_provider is not None:
+                        limit = min(limit, per_provider)
+                    for candidate in self._search(provider, query, subtopic, result, limit):
                         if candidate.source_id in seen:
                             continue
                         seen.add(candidate.source_id)

@@ -26,6 +26,7 @@ import yaml
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from .hashing import digest
+from .profiles import PROFILES, ProfileName, apply_profile
 from .redaction import Redactor
 
 _ENV_REF = re.compile(r"\$\{([A-Za-z_][A-Za-z0-9_]*)(?::-([^}]*))?\}")
@@ -70,6 +71,10 @@ class ExperimentSection(_Model):
 
 
 class CollectionSection(_Model):
+    #: Which evidence the run collects. Supplies defaults for the fields below
+    #: and for ``stopping``; see :mod:`pheasant_lab.profiles`. A value stated
+    #: explicitly in the file always wins over the profile.
+    profile: ProfileName = "scholarly"
     max_depth: int = 2
     max_research_agents: int = 6
     max_concurrent_agents: int = 3
@@ -78,14 +83,38 @@ class CollectionSection(_Model):
     allowed_source_types: list[str] = Field(
         default_factory=lambda: ["journal_article", "preprint", "review", "proceedings", "dataset"]
     )
+    #: Source types that count toward ``stopping.minimum_review_or_primary_sources``.
+    #: Peer-reviewed for ``scholarly``; primary (the organisation's own
+    #: statement, a filing, a posting) for ``web``; either for ``balanced``.
+    authoritative_source_types: list[str] = Field(
+        default_factory=lambda: ["journal_article", "review", "proceedings", "book_chapter"]
+    )
     require_stable_identifier: bool = True
     permit_abstract_only: bool = True
     download_full_text_only_when_licensed: bool = True
     providers: list[str] = Field(
         default_factory=lambda: ["openalex", "crossref", "arxiv", "pubmed"]
     )
+    #: Cap on what one provider may return for one query. ``None`` lets the
+    #: first provider fill the subtopic; ``balanced`` sets it so every index
+    #: in the list is asked before any one of them fills it.
+    max_results_per_provider: int | None = None
     provider_timeout_seconds: float = 20.0
     provider_max_retries: int = 3
+
+    @model_validator(mode="after")
+    def _authoritative_is_admitted(self) -> CollectionSection:
+        # Some authoritative types may legitimately sit outside the admitted
+        # set (``book_chapter`` does under ``scholarly``). None of them doing
+        # so is the refusal: the minimum could then never be met, and every
+        # facet would report short for a reason no amount of collection fixes.
+        authoritative = set(self.authoritative_source_types)
+        if authoritative and not authoritative & set(self.allowed_source_types):
+            raise ValueError(
+                f"none of authoritative_source_types {sorted(authoritative)} is in "
+                "allowed_source_types; stopping.minimum_review_or_primary_sources could never be met"
+            )
+        return self
 
 
 class StoppingSection(_Model):
@@ -200,6 +229,17 @@ class ExperimentFile(_Model):
     replay: ReplaySection = Field(default_factory=ReplaySection)
     privacy: PrivacySection = Field(default_factory=PrivacySection)
     refinement: RefinementSection = Field(default_factory=RefinementSection)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _apply_profile(cls, data: Any) -> Any:
+        if not isinstance(data, dict):
+            return data
+        collection = data.get("collection") or {}
+        name = collection.get("profile") if isinstance(collection, dict) else None
+        if name is not None and name not in PROFILES:
+            raise ValueError(f"unknown collection.profile '{name}'; known: {list(PROFILES)}")
+        return apply_profile(data)
 
     @field_validator("arms")
     @classmethod

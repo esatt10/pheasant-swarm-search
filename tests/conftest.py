@@ -36,7 +36,14 @@ def _offline_environment(monkeypatch: pytest.MonkeyPatch) -> None:
 
     monkeypatch.setenv("PHEASANT_LAB_FIXTURES", str(FIXTURE_LITERATURE))
     monkeypatch.setenv("PHEASANT_LAB_PROMPTS", str(REPO_ROOT / "prompts"))
-    for name in ("OPENAI_API_KEY", "ANTHROPIC_API_KEY", "PHEASANT_MCP_TOKEN", "NCBI_API_KEY"):
+    for name in (
+        "OPENAI_API_KEY",
+        "ANTHROPIC_API_KEY",
+        "PHEASANT_MCP_TOKEN",
+        "NCBI_API_KEY",
+        "BRAVE_SEARCH_API_KEY",
+        "TAVILY_API_KEY",
+    ):
         monkeypatch.delenv(name, raising=False)
 
 

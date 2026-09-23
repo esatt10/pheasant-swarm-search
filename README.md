@@ -1,7 +1,9 @@
 # Pheasant Scientific Swarm Evaluation Lab
 
 Stress-test a [Pheasant](https://github.com/esatt10/pheasant-kb) knowledge
-region with hierarchical scientific research swarms, then find out whether a
+region with hierarchical research swarms — over peer-reviewed literature, the
+open web, or both (see [collection profiles](#three-collection-profiles)) —
+then find out whether a
 **fresh agent with nothing but Pheasant** can rival the source-aware specialist
 that built the collection.
 
@@ -22,7 +24,7 @@ It answers five questions and **refuses to blend them into one score**:
 
 | | Question | Where the answer lives |
 |---|---|---|
-| **Collection** | Did the swarm gather a broad, authoritative, non-redundant, traceable body of literature? | `reports/collection.md` |
+| **Collection** | Did the swarm gather a broad, authoritative, non-redundant, traceable body of sources? | `reports/collection.md` |
 | **Persistence** | Did Pheasant receive and index the intended information without silent loss, duplication or scope leakage? | ingest receipts, `reconcile`, the `core` gate set |
 | **Retrieval** | Can a stateless agent find the right evidence with no access to the research trace? | `known_positive_recall_at_k`, `negative_exposure_at_k` |
 | **Answering** | Can that agent answer a frozen question set as well as the specialist? | `fact_f1`, the non-inferiority decision |
@@ -123,10 +125,49 @@ directory whose halves are not comparable, and nothing downstream could tell.
 
 ---
 
+## Three collection profiles
+
+`collection.profile` decides which evidence a run collects and what counts as
+**authoritative** for the stopping calculus's `minimum_review_or_primary_sources`:
+
+| Profile | Providers | Admits | Authoritative means |
+|---|---|---|---|
+| `scholarly` (default) | OpenAlex, Crossref, arXiv, PubMed | journal articles, preprints, reviews, proceedings, datasets | peer-reviewed |
+| `web` | Brave, Tavily | company publications, filings, job postings, interviews, press, essays, forums, unclassified pages | primary: the organisation's own statement, a filing, a posting, a practitioner interview |
+| `balanced` | OpenAlex, Crossref, Brave, Tavily — each capped per query | scholarly types plus web primary and secondary (no forums or unclassified pages) | peer-reviewed **or** primary |
+
+```bash
+COLLECTION_PROFILE=web uv run pheasant-lab plan --config configs/experiment.example.yaml
+uv run pheasant-lab collect --config configs/experiment.example.yaml --set collection.profile=balanced --topic <topic>
+```
+
+`configs/topics.example.yaml` carries two scholarly topics and one written for
+the web profile (`topic-forward-deployed-engineering`), whose evidence is
+mostly company writing, filings, job postings and interviews.
+
+A profile supplies **defaults** for the keys it governs (providers, admitted
+and authoritative types, agent/round/source limits, the per-provider cap, and
+four stopping minimums — the full table is `src/pheasant_lab/profiles.py`).
+A key stated in the experiment file or with `--set` always wins. Runs under
+different profiles have different `config_digest`s, so they are never compared
+by accident.
+
+Web results carry no type, so each is classified from its URL by a stated rule
+kept in the record (`raw.classified_by`); nothing matched is `web_page`, not a
+guess. Independence is organisational: a family is the registrable domain, and
+a hosting platform (Substack, Medium, a job board, YouTube) is keyed by author.
+Web providers retain the search API's snippet, never a fetched page, and bill
+per request — `plan` reports it as `search_api_usd`. At the default $10
+budget a full `web` run's worst-case search fees alone (~$4) exceed the 40%
+collection allocation, and the ledger refuses searches past it: raise
+`cost_budget_usd` or lower the round limits for a full web collection. A configured web provider with no key (`BRAVE_SEARCH_API_KEY`,
+`TAVILY_API_KEY`) is a `doctor` finding.
+
 ## Collection stops for a reason, and says which
 
 Collection may report `sufficient` only when **every** hard condition passes:
-facet minimums (sources, independent families, peer-reviewed counts),
+facet minimums (sources, independent families, and authoritative sources —
+peer-reviewed, primary, or either, depending on the collection profile),
 provenance completeness, the ingest receipt rate, critical contradictions
 resolved or converted into benchmark uncertainty cases, marginal unique-claim
 yield below threshold for the configured window, the evaluation reserve
@@ -219,7 +260,10 @@ one are equally disqualifying for a result somebody will publish.
 
 1. Start Pheasant and note its MCP endpoint.
 2. `cp .env.example .env` and fill in `PHEASANT_MCP_URL`, the model provider
-   and its key, and the tool names if your build renames any.
+   and its key, and the tool names if your build renames any. For the `web` or
+   `balanced` profile also set `BRAVE_SEARCH_API_KEY` and/or
+   `TAVILY_API_KEY`; a configured provider without its key is a `doctor`
+   finding. `plan` reports their per-request fees as `search_api_usd`.
 3. `uv run pheasant-lab doctor --config configs/experiment.yaml` — it fails
    before any spend when a required capability is missing, a configured tool
    is absent from `tools/list`, a model has no price, or the adapter cannot
@@ -264,12 +308,12 @@ wrong here"* and *"this is ready to be measured"* are different sentences.
 ## Layout
 
 ```text
-configs/     experiment, models, metrics, proof policy, MCP map, logging, topics
+configs/     experiment (with the collection profile), models, metrics, proof policy, MCP map, logging, topics
 prompts/     one file per agent role — the part you will most want to edit
 schemas/     the shapes an outside reader can rely on; validated in CI
 src/pheasant_lab/
   orchestration/  planner, researcher, auditor, stopping calculus, orchestrator
-  providers/      OpenAlex, Crossref, arXiv, PubMed, and an offline fixture pack
+  providers/      OpenAlex, Crossref, arXiv, PubMed, Brave, Tavily, and an offline fixture pack
   pheasant/       MCP protocol, transports, capabilities, ingest, retrieval, mock
   benchmark/      builder, freezer, leakage, question types and matchers
   arms/           S0, C0, P0, P1, P2 and the isolation they enforce

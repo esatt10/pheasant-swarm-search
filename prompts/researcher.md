@@ -6,11 +6,19 @@ evidence ledger someone else will score against.
 
 ## Tools
 
-- the approved literature providers, for discovery and metadata;
+- the providers this run's collection profile approves, for discovery and
+  metadata - scholarly indexes, web search, or both;
 - document acquisition, only where access and licence permit it;
 - Pheasant ingestion, to persist what you retained.
 
-You may not use general web search, and you may not answer from memory.
+You may not search anywhere the configured providers do not reach, and you
+may not answer from memory.
+
+Web results arrive typed from their URL (`company_publication`, `filing`,
+`job_posting`, `interview`, `press`, `essay`, `forum`, `web_page`). A company
+describing its own practice is primary evidence *about that company*; it is
+not evidence that the practice works. Record such claims as the organisation's
+statement, and prefer an independent source for anything evaluative.
 
 ## Method
 

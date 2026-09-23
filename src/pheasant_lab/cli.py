@@ -41,7 +41,7 @@ from .pheasant.client import PheasantClient
 from .pheasant.ingestion import Ingestor
 from .pheasant.mock import MockPheasantServer
 from .pheasant.retrieval import Retriever
-from .providers.base import ProviderError, build_provider
+from .providers.base import ProviderError, ProviderRegistry, build_provider
 from .redaction import Redactor
 from .settings import ConfigError, LabConfig, load_config
 from .tracing.events import Tracer, read_jsonl
@@ -291,21 +291,24 @@ def _write_resolved(paths: RunPaths, config: LabConfig, redactor: Redactor) -> N
     )
 
 
-def _providers(config: LabConfig, *, offline: bool) -> list[Any]:
+def _providers(config: LabConfig, *, offline: bool, failures: list[str] | None = None) -> list[Any]:
     names = ["fixtures"] if offline else list(config.collection.providers)
     built: list[Any] = []
     for name in names:
         try:
+            key_env = ProviderRegistry.get(name).api_key_env
             built.append(
                 build_provider(
                     name,
                     timeout=config.collection.provider_timeout_seconds,
                     contact_email=os.environ.get("LITERATURE_CONTACT_EMAIL") or None,
-                    api_key=os.environ.get("NCBI_API_KEY") if name == "pubmed" else None,
+                    api_key=(os.environ.get(key_env) or None) if key_env else None,
                 )
             )
         except ProviderError as exc:
             LOG.warning("provider %s unavailable: %s", name, exc)
+            if failures is not None:
+                failures.append(str(exc))
     return built
 
 
@@ -354,11 +357,19 @@ def cmd_doctor(args: argparse.Namespace) -> int:
     notes.append(f"budget {config.experiment.cost_budget_usd:.2f} {config.pricing.currency}")
 
     offline = bool(getattr(args, "offline", False))
-    providers = _providers(config, offline=offline)
+    provider_failures: list[str] = []
+    providers = _providers(config, offline=offline, failures=provider_failures)
+    # A configured provider that cannot be built is a finding, not a note: a
+    # web profile whose only web providers lack keys would otherwise collect
+    # nothing and report every facet short.
+    findings.extend(f"provider {failure}" for failure in provider_failures)
     if not providers:
         findings.append("no literature provider could be constructed")
     else:
-        notes.append(f"providers: {', '.join(p.name for p in providers)}")
+        notes.append(
+            f"collection profile: {config.collection.profile}; "
+            f"providers: {', '.join(p.name for p in providers)}"
+        )
 
     redactor = _redactor(config)
     notes.append(f"{redactor.known} secret value(s) registered for redaction")
@@ -437,11 +448,22 @@ def cmd_plan(args: argparse.Namespace) -> int:
         )
         return one.total_usd * calls
 
+    # Every query goes to every configured provider, and a web search API
+    # bills per request - so a web profile's collection cost is not only
+    # model tokens. Read off the class, which needs no key to construct.
+    per_query_usd = 0.0
+    for name in config.collection.providers:
+        try:
+            per_query_usd += ProviderRegistry.get(name).usd_per_request
+        except ProviderError:
+            continue
+
     projection = {
         "topic": topic.id,
         "planning_usd": estimate("planner", config.collection.max_depth, 4000)
         + estimate("orchestrator", config.collection.max_depth, 4000),
         "collection_usd": estimate("researcher", agents, 12000),
+        "search_api_usd": round(searches * per_query_usd, 4),
         "benchmark_usd": estimate("benchmark_builder", 1, 20000),
         "evaluation_usd": estimate("test_agent", answers, 8000)
         + estimate("specialist", questions * config.replay.repetitions, 8000),
@@ -454,6 +476,7 @@ def cmd_plan(args: argparse.Namespace) -> int:
     projection["projected_total_usd"] = round(
         projection["planning_usd"]
         + projection["collection_usd"]
+        + projection["search_api_usd"]
         + projection["benchmark_usd"]
         + projection["evaluation_usd"],
         4,
@@ -467,12 +490,14 @@ def cmd_plan(args: argparse.Namespace) -> int:
         for key in (
             "planning_usd",
             "collection_usd",
+            "search_api_usd",
             "benchmark_usd",
             "evaluation_usd",
             "projected_total_usd",
             "budget_usd",
         ):
             print(f"- {key}: {projection[key]:.4f}")
+        print(f"- collection profile: {config.collection.profile}")
         print(f"- research branches: {agents} · provider searches: {searches}")
         print(f"- benchmark questions: {questions} · arms: {arms} · answers: {answers}")
         print(f"- MCP search calls: {query_calls}")
@@ -569,7 +594,8 @@ def cmd_audit(args: argparse.Namespace) -> int:
                 mark = "ok" if row["meets_minimum"] else "SHORT"
                 print(
                     f"  {row['facet_id']}: {mark} — {row['sources']} sources, {row['families']} families, "
-                    f"{row['peer_reviewed']} peer-reviewed"
+                    f"{row['peer_reviewed']} peer-reviewed, "
+                    f"{row.get('authoritative', row['peer_reviewed'])} authoritative"
                 )
             for gap in audit.quality_gaps:
                 print(f"  gap {gap.facet_id}: {gap.kind} — {gap.detail}")

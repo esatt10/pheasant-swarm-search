@@ -80,7 +80,11 @@ class CoverageAuditor:
         self.model = model
         self.ledger = ledger
         self.tracer = tracer
-        self.calculus = StoppingCalculus(config.stopping, topic)
+        self.calculus = StoppingCalculus(
+            config.stopping,
+            topic,
+            authoritative_types=config.collection.authoritative_source_types,
+        )
 
     def audit(
         self, state: CollectionState, *, assigned_facets: set[str] | None = None
@@ -113,6 +117,17 @@ class CoverageAuditor:
             if all(s.candidate.source_type == "preprint" for s in sources):
                 gaps.append(
                     QualityGap(facet_id, "preprint_only", "no peer-reviewed source on this facet")
+                )
+            elif not row.get("authoritative"):
+                # The web analogue of preprint-only: every source is somebody's
+                # account of the thing, and none is the thing speaking for itself.
+                gaps.append(
+                    QualityGap(
+                        facet_id,
+                        "no_authoritative_source",
+                        "no source of an authoritative type "
+                        f"({', '.join(sorted(self.calculus.authoritative_types))}) on this facet",
+                    )
                 )
             decades = {
                 (s.candidate.published_at or "")[:3] for s in sources if s.candidate.published_at
