@@ -40,7 +40,7 @@ that a research agent will test against the literature.
       "facet_ids": ["<facet id>"],
       "question": "<question with a determinate answer shape>",
       "terminology": ["<term>", "<synonym>", "<identifier>"],
-      "providers": ["openalex", "crossref"],
+      "providers": ["<a provider from the run's configured list>"],
       "date_from": null,
       "date_to": null,
       "expect_disagreement": false,

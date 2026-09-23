@@ -1,7 +1,9 @@
 # Pheasant Scientific Swarm Evaluation Lab
 
 Stress-test a [Pheasant](https://github.com/esatt10/pheasant-kb) knowledge
-region with hierarchical scientific research swarms, then find out whether a
+region with hierarchical research swarms — over peer-reviewed literature, the
+open web, or both (see [collection profiles](#three-collection-profiles)) —
+then find out whether a
 **fresh agent with nothing but Pheasant** can rival the source-aware specialist
 that built the collection.
 
@@ -22,7 +24,7 @@ It answers five questions and **refuses to blend them into one score**:
 
 | | Question | Where the answer lives |
 |---|---|---|
-| **Collection** | Did the swarm gather a broad, authoritative, non-redundant, traceable body of literature? | `reports/collection.md` |
+| **Collection** | Did the swarm gather a broad, authoritative, non-redundant, traceable body of sources? | `reports/collection.md` |
 | **Persistence** | Did Pheasant receive and index the intended information without silent loss, duplication or scope leakage? | ingest receipts, `reconcile`, the `core` gate set |
 | **Retrieval** | Can a stateless agent find the right evidence with no access to the research trace? | `known_positive_recall_at_k`, `negative_exposure_at_k` |
 | **Answering** | Can that agent answer a frozen question set as well as the specialist? | `fact_f1`, the non-inferiority decision |
@@ -139,6 +141,10 @@ COLLECTION_PROFILE=web uv run pheasant-lab plan --config configs/experiment.exam
 uv run pheasant-lab collect --config configs/experiment.example.yaml --set collection.profile=balanced --topic <topic>
 ```
 
+`configs/topics.example.yaml` carries two scholarly topics and one written for
+the web profile (`topic-forward-deployed-engineering`), whose evidence is
+mostly company writing, filings, job postings and interviews.
+
 A profile supplies **defaults** for the keys it governs (providers, admitted
 and authoritative types, agent/round/source limits, the per-provider cap, and
 four stopping minimums — the full table is `src/pheasant_lab/profiles.py`).
@@ -160,7 +166,8 @@ collection allocation, and the ledger refuses searches past it: raise
 ## Collection stops for a reason, and says which
 
 Collection may report `sufficient` only when **every** hard condition passes:
-facet minimums (sources, independent families, peer-reviewed counts),
+facet minimums (sources, independent families, and authoritative sources —
+peer-reviewed, primary, or either, depending on the collection profile),
 provenance completeness, the ingest receipt rate, critical contradictions
 resolved or converted into benchmark uncertainty cases, marginal unique-claim
 yield below threshold for the configured window, the evaluation reserve
@@ -253,7 +260,10 @@ one are equally disqualifying for a result somebody will publish.
 
 1. Start Pheasant and note its MCP endpoint.
 2. `cp .env.example .env` and fill in `PHEASANT_MCP_URL`, the model provider
-   and its key, and the tool names if your build renames any.
+   and its key, and the tool names if your build renames any. For the `web` or
+   `balanced` profile also set `BRAVE_SEARCH_API_KEY` and/or
+   `TAVILY_API_KEY`; a configured provider without its key is a `doctor`
+   finding. `plan` reports their per-request fees as `search_api_usd`.
 3. `uv run pheasant-lab doctor --config configs/experiment.yaml` — it fails
    before any spend when a required capability is missing, a configured tool
    is absent from `tools/list`, a model has no price, or the adapter cannot

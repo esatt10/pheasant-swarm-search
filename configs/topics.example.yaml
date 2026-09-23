@@ -2,6 +2,15 @@
 # Topics, and the facets a topic must cover before collection may be declared
 # sufficient. Facet weights are the denominator of FacetCoverage; they are
 # topic-specific on purpose, because "covered" is a claim about a field.
+#
+# `source_authority` is recorded with the topic and is NOT enforced by the
+# stopping calculus. What is enforced:
+#   * families come from each provider: an affiliation (OpenAlex, Crossref),
+#     the registrable domain or platform author (web), else the first
+#     author's surname — see SourceCandidate.derived_family;
+#   * the per-facet authoritative minimum is
+#     stopping.minimum_review_or_primary_sources, counted over the collection
+#     profile's authoritative_source_types (see src/pheasant_lab/profiles.py).
 # ---------------------------------------------------------------------------
 
 topics:
@@ -21,8 +30,8 @@ topics:
       - { id: comparative, label: "Cross-species comparison and heterologous expression", weight: 2 }
       - { id: contested, label: "Contested claims and failed replications", weight: 2 }
     source_authority:
-      # Source families make "independent" mean something. Two papers from one
-      # lab are one family, however many journals they appear in.
+      # Descriptive (see the header): two papers from one lab are one family,
+      # however many journals they appear in.
       family_key: [first_author_affiliation, corresponding_author]
       preferred_types: [journal_article, review, preprint]
       minimum_peer_reviewed: 4
@@ -45,3 +54,32 @@ topics:
       family_key: [first_author_affiliation, corresponding_author]
       preferred_types: [journal_article, review, proceedings]
       minimum_peer_reviewed: 4
+
+  # An industry-practice topic, for the `web` or `balanced` profile: most of
+  # its evidence is company writing, filings, job postings and interviews, not
+  # papers. Under `scholarly` its facets would mostly report short.
+  #   uv run pheasant-lab plan --config configs/experiment.example.yaml \
+  #     --set collection.profile=web --topic topic-forward-deployed-engineering
+  - id: topic-forward-deployed-engineering
+    title: State of forward deployed engineering
+    seed_terms:
+      - forward deployed engineer
+      - forward deployed engineering team
+      - deployment strategist embedded engineering
+      - forward deployed engineer AI startup
+    date_range: { from: 2015-01-01, to: null }
+    facets:
+      - { id: origins, label: "Definition and origins of the role", weight: 2 }
+      - { id: adopters, label: "Which companies run FDE teams, and since when", weight: 3 }
+      - { id: composition, label: "Team composition, ratios, hiring profile and career path", weight: 3 }
+      - { id: value, label: "Value strategy: services margin versus product moat, pricing", weight: 3 }
+      - { id: product, label: "Coordination with product: feedback loops, productising field work", weight: 3 }
+      - { id: business, label: "Coordination with customers, sales and customer success", weight: 2 }
+      - { id: ai-era, label: "The AI and agent-era resurgence and how it differs", weight: 2 }
+      - { id: contested, label: "Failure modes: FDE drifting into consulting, margin drag", weight: 2 }
+    source_authority:
+      # Descriptive (see the header). On the web, one organisation's site is
+      # one family however many posts it holds.
+      family_key: [registrable_domain]
+      preferred_types: [company_publication, filing, job_posting, interview]
+      minimum_peer_reviewed: 0

@@ -8,12 +8,16 @@ store and nothing else.
 
 1. **Facet coverage** — for each facet, whether it meets its minimum source
    count, its minimum independent source families, and its minimum
-   peer-reviewed count. Report the counts, not a verdict adjective.
+   authoritative count. "Authoritative" is set by the collection profile:
+   peer-reviewed (`scholarly`), primary — an organisation's own statement, a
+   filing, a job posting, a practitioner interview (`web`), or either
+   (`balanced`). Report the counts, not a verdict adjective.
 2. **Duplication** — items acquired more than once, and near-equivalents
    (same DOI, same title normalised, same preprint/version pair). Report the
    rate over acquired items.
-3. **Source-quality gaps** — a facet carried entirely by preprints, or
-   entirely by one family, or entirely by one decade.
+3. **Source-quality gaps** — a facet carried entirely by preprints, with no
+   authoritative source at all, entirely by one family (one lab, or one
+   organisation's website), or entirely by one decade.
 4. **Unresolved critical contradictions** — and, for each, whether it can be
    converted into a benchmark uncertainty case instead of being resolved.
 5. **Saturation** — marginal unique-claim yield for the last rounds, against
@@ -40,6 +44,7 @@ store and nothing else.
       "sources": 7,
       "families": 4,
       "peer_reviewed": 5,
+      "authoritative": 5,
       "meets_minimum": true,
       "unmet": []
     }
