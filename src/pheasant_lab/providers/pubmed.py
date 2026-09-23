@@ -19,6 +19,8 @@ EFETCH = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi"
 @ProviderRegistry.register
 class PubMedProvider(LiteratureProvider):
     name = "pubmed"
+    # Optional: raises the rate limit; the provider works without it.
+    api_key_env = "NCBI_API_KEY"
 
     def search(
         self,

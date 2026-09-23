@@ -15,10 +15,11 @@ conditions can fail while it passes.
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
+from ..profiles import PEER_REVIEWED_TYPES
 from ..settings import StoppingSection, Topic
 from .state import CollectionState
 
@@ -92,9 +93,19 @@ class StopDecision:
 class StoppingCalculus:
     """Evaluates the hard conditions. Holds no opinion of its own."""
 
-    def __init__(self, config: StoppingSection, topic: Topic) -> None:
+    def __init__(
+        self,
+        config: StoppingSection,
+        topic: Topic,
+        *,
+        authoritative_types: Iterable[str] = PEER_REVIEWED_TYPES,
+    ) -> None:
         self.config = config
         self.topic = topic
+        # Which source types satisfy `minimum_review_or_primary_sources`. The
+        # collection profile decides: peer-reviewed for scholarly, primary for
+        # web, either for balanced.
+        self.authoritative_types = frozenset(authoritative_types)
 
     # -- the three published formulas --------------------------------------
     def facet_coverage(self, state: CollectionState) -> tuple[float, list[dict[str, Any]]]:
@@ -107,6 +118,7 @@ class StoppingCalculus:
             sources = state.sources_for_facet(facet.id)
             families = state.families_for_facet(facet.id)
             peer_reviewed = state.peer_reviewed_for_facet(facet.id)
+            authoritative = state.authoritative_for_facet(facet.id, self.authoritative_types)
             unmet: list[str] = []
             if len(sources) < self.config.minimum_sources_per_subtopic:
                 unmet.append(f"sources {len(sources)}<{self.config.minimum_sources_per_subtopic}")
@@ -114,9 +126,9 @@ class StoppingCalculus:
                 unmet.append(
                     f"families {len(families)}<{self.config.minimum_independent_source_families}"
                 )
-            if peer_reviewed < self.config.minimum_review_or_primary_sources:
+            if authoritative < self.config.minimum_review_or_primary_sources:
                 unmet.append(
-                    f"peer_reviewed {peer_reviewed}<{self.config.minimum_review_or_primary_sources}"
+                    f"authoritative {authoritative}<{self.config.minimum_review_or_primary_sources}"
                 )
             total_weight += facet.weight
             if not unmet:
@@ -129,6 +141,7 @@ class StoppingCalculus:
                     "sources": len(sources),
                     "families": len(families),
                     "peer_reviewed": peer_reviewed,
+                    "authoritative": authoritative,
                     "claims": len(state.claims_for_facet(facet.id)),
                     "meets_minimum": not unmet,
                     "unmet": unmet,

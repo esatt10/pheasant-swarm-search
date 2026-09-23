@@ -15,9 +15,10 @@ from typing import Any
 
 from .. import ids
 from ..hashing import digest, digest_text
+from ..profiles import PEER_REVIEWED_TYPES as _PEER_REVIEWED
 from ..textkit import normalise
 
-PEER_REVIEWED_TYPES = frozenset({"journal_article", "review", "proceedings", "book_chapter"})
+PEER_REVIEWED_TYPES = frozenset(_PEER_REVIEWED)
 
 _DOI = re.compile(r"10\.\d{4,9}/[-._;()/:a-z0-9]+", re.IGNORECASE)
 
@@ -133,6 +134,8 @@ class LiteratureProvider(ABC):
     """One index."""
 
     name = "abstract"
+    #: Environment variable holding this provider's key, when it needs one.
+    api_key_env: str | None = None
     # A provider that costs money per request declares it; the budget guard
     # reserves before the call rather than discovering the bill afterwards.
     usd_per_request = 0.0
@@ -203,7 +206,7 @@ class ProviderRegistry:
 def _ensure_loaded() -> None:
     if ProviderRegistry._providers:
         return
-    from . import arxiv, crossref, fixtures, openalex, pubmed  # noqa: F401
+    from . import arxiv, crossref, fixtures, openalex, pubmed, web  # noqa: F401
 
 
 def build_provider(name: str, **kwargs: Any) -> LiteratureProvider:

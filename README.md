@@ -123,6 +123,40 @@ directory whose halves are not comparable, and nothing downstream could tell.
 
 ---
 
+## Three collection profiles
+
+`collection.profile` decides which evidence a run collects and what counts as
+**authoritative** for the stopping calculus's `minimum_review_or_primary_sources`:
+
+| Profile | Providers | Admits | Authoritative means |
+|---|---|---|---|
+| `scholarly` (default) | OpenAlex, Crossref, arXiv, PubMed | journal articles, preprints, reviews, proceedings, datasets | peer-reviewed |
+| `web` | Brave, Tavily | company publications, filings, job postings, interviews, press, essays, forums, unclassified pages | primary: the organisation's own statement, a filing, a posting, a practitioner interview |
+| `balanced` | OpenAlex, Crossref, Brave, Tavily — each capped per query | scholarly types plus web primary and secondary (no forums or unclassified pages) | peer-reviewed **or** primary |
+
+```bash
+COLLECTION_PROFILE=web uv run pheasant-lab plan --config configs/experiment.example.yaml
+uv run pheasant-lab collect --config configs/experiment.example.yaml --set collection.profile=balanced --topic <topic>
+```
+
+A profile supplies **defaults** for the keys it governs (providers, admitted
+and authoritative types, agent/round/source limits, the per-provider cap, and
+four stopping minimums — the full table is `src/pheasant_lab/profiles.py`).
+A key stated in the experiment file or with `--set` always wins. Runs under
+different profiles have different `config_digest`s, so they are never compared
+by accident.
+
+Web results carry no type, so each is classified from its URL by a stated rule
+kept in the record (`raw.classified_by`); nothing matched is `web_page`, not a
+guess. Independence is organisational: a family is the registrable domain, and
+a hosting platform (Substack, Medium, a job board, YouTube) is keyed by author.
+Web providers retain the search API's snippet, never a fetched page, and bill
+per request — `plan` reports it as `search_api_usd`. At the default $10
+budget a full `web` run's worst-case search fees alone (~$4) exceed the 40%
+collection allocation, and the ledger refuses searches past it: raise
+`cost_budget_usd` or lower the round limits for a full web collection. A configured web provider with no key (`BRAVE_SEARCH_API_KEY`,
+`TAVILY_API_KEY`) is a `doctor` finding.
+
 ## Collection stops for a reason, and says which
 
 Collection may report `sufficient` only when **every** hard condition passes:
@@ -264,12 +298,12 @@ wrong here"* and *"this is ready to be measured"* are different sentences.
 ## Layout
 
 ```text
-configs/     experiment, models, metrics, proof policy, MCP map, logging, topics
+configs/     experiment (with the collection profile), models, metrics, proof policy, MCP map, logging, topics
 prompts/     one file per agent role — the part you will most want to edit
 schemas/     the shapes an outside reader can rely on; validated in CI
 src/pheasant_lab/
   orchestration/  planner, researcher, auditor, stopping calculus, orchestrator
-  providers/      OpenAlex, Crossref, arXiv, PubMed, and an offline fixture pack
+  providers/      OpenAlex, Crossref, arXiv, PubMed, Brave, Tavily, and an offline fixture pack
   pheasant/       MCP protocol, transports, capabilities, ingest, retrieval, mock
   benchmark/      builder, freezer, leakage, question types and matchers
   arms/           S0, C0, P0, P1, P2 and the isolation they enforce

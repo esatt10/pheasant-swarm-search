@@ -334,12 +334,16 @@ def write_collection_report(
 
     lines.append("## Facet coverage")
     lines.append("")
-    lines.append("| facet | weight | sources | families | peer-reviewed | claims | meets minimum |")
-    lines.append("|---|---:|---:|---:|---:|---:|---|")
+    lines.append(
+        "| facet | weight | sources | families | peer-reviewed | authoritative | claims "
+        "| meets minimum |"
+    )
+    lines.append("|---|---:|---:|---:|---:|---:|---:|---|")
     for row in audit.get("facet_coverage") or []:
         lines.append(
             f"| {row['facet_id']} | {row['weight']} | {row['sources']} | {row['families']} | "
-            f"{row['peer_reviewed']} | {row.get('claims', 0)} | "
+            f"{row['peer_reviewed']} | {row.get('authoritative', row['peer_reviewed'])} | "
+            f"{row.get('claims', 0)} | "
             f"{'yes' if row['meets_minimum'] else '**no** — ' + ', '.join(row.get('unmet', []))} |"
         )
     lines.append("")

@@ -94,6 +94,15 @@ uv run python scripts/export_schemas.py               # after changing a record 
   the composition**, not over the run. A version carrying the run id would give
   the same question a different id in every run, and there would be no trend
   line.
+- **A collection profile supplies defaults, never overrides.**
+  `collection.profile` (`scholarly` | `web` | `balanced`, `profiles.py`) fills
+  only the `collection`/`stopping` keys the file leaves unset, which is why
+  `experiment.example.yaml` states none of them. "Authoritative" is the
+  profile's `authoritative_source_types`, not peer review: under `web` a
+  press piece counts toward sources and families but never toward
+  `minimum_review_or_primary_sources`. `balanced` sets
+  `max_results_per_provider`, because without it the first provider in the
+  list fills every subtopic and the second is never asked.
 - **Question wording and its matcher are disjoint by construction.** The
   builder splits a claim into subject terms (which the question names) and
   answer terms (which the matcher requires), and `_harden` rebuilds any matcher

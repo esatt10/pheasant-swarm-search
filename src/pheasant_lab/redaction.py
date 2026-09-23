@@ -26,7 +26,15 @@ SECRET_ENV_PATTERNS = (
 )
 
 FORBIDDEN_HEADERS = frozenset(
-    {"authorization", "proxy-authorization", "cookie", "set-cookie", "x-api-key", "api-key"}
+    {
+        "authorization",
+        "proxy-authorization",
+        "cookie",
+        "set-cookie",
+        "x-api-key",
+        "api-key",
+        "x-subscription-token",
+    }
 )
 
 # Shapes worth catching even when the value never passed through the registry.

@@ -85,7 +85,11 @@ class Orchestrator:
         auditor = CoverageAuditor(
             self.config, topic, model=self.auditor_model, ledger=self.ledger, tracer=self.tracer
         )
-        calculus = StoppingCalculus(self.config.stopping, topic)
+        calculus = StoppingCalculus(
+            self.config.stopping,
+            topic,
+            authoritative_types=self.config.collection.authoritative_source_types,
+        )
 
         branches: list[dict[str, Any]] = []
         subtopics: list[Subtopic] = []

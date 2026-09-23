@@ -350,6 +350,12 @@ class CollectionState:
     def peer_reviewed_for_facet(self, facet_id: str) -> int:
         return sum(1 for s in self.sources_for_facet(facet_id) if s.candidate.peer_reviewed)
 
+    def authoritative_for_facet(self, facet_id: str, types: Iterable[str]) -> int:
+        """Sources whose type the collection profile counts as authoritative."""
+
+        wanted = frozenset(types)
+        return sum(1 for s in self.sources_for_facet(facet_id) if s.candidate.source_type in wanted)
+
     def outstanding_critical_contradictions(self) -> list[ContradictionRecord]:
         return [c for c in self.contradictions.values() if c.outstanding]
 
