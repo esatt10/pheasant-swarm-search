@@ -540,6 +540,8 @@ class PheasantFile(_Model):
     max_retries: int = 3
     retry_backoff_seconds: float = 1.0
     retry_backoff_max_seconds: float = 20.0
+    # Whole encoded MCP request, including base64 documents and the envelope.
+    ingest_max_request_bytes: int = Field(default=500 * 1024 * 1024, gt=0)
     knowledge_base: str = ""
     source_name: str = "swarm-lab-literature"
     capabilities: dict[str, CapabilitySpec] = Field(default_factory=dict)
@@ -829,6 +831,13 @@ class LabConfig(_Model):
             }
         pheasant = payload.get("pheasant")
         if isinstance(pheasant, dict):
+            # The transport guard was added after runs existed. Its default
+            # must not prevent their resumption; an override is still digested.
+            if (
+                pheasant.get("ingest_max_request_bytes")
+                == PheasantFile.model_fields["ingest_max_request_bytes"].default
+            ):
+                pheasant.pop("ingest_max_request_bytes", None)
             capabilities = pheasant.get("capabilities")
             if isinstance(capabilities, dict):
                 capabilities.pop("index_queue", None)

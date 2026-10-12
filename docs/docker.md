@@ -52,6 +52,22 @@ an ordinary `--set`:
 - **Budget** for the dollar ceiling, the per-phase split and a per-launch cap.
 - **Pheasant connection** for another region.
 
+PDF submissions are bounded by encoded bytes as well as document count. The
+default `ingest_max_request_bytes: 524288000` limits each complete MCP request
+to 500 MiB (roughly 375 MiB of raw PDFs), including base64, metadata and the
+JSON-RPC envelope; batches also stop at 20 documents. Change the byte limit
+under **Pheasant connection** in the console or with
+`--set ingest_max_request_bytes=524288000`. Keep it below the connected
+region's whole-request MCP limit. The updated external `pheasant-lab` fleet
+allows 1024 MiB per request; `sync.limits.max_file_size_mb` is a separate
+per-file limit and does not increase the MCP transport limit.
+
+A PDF that cannot fit alone is recorded as a local `REQUEST_TOO_LARGE`
+failure without allocating its base64 payload or sending it, and other
+documents continue. HTTP 413 responses are terminal rather than retried
+with the same bytes. Submission receipts, registration, sync and index
+acknowledgement still use the existing MCP ingestion contract.
+
 ## Only the runs made here
 
 Every run records `environment.deployment` in its manifest, and the image sets

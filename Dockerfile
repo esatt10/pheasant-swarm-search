@@ -58,6 +58,7 @@ RUN pip install ".[duckdb]"
 COPY configs/ ./configs/
 COPY prompts/ ./prompts/
 COPY schemas/ ./schemas/
+COPY scripts/run_fine_tuning_collection.py ./scripts/run_fine_tuning_collection.py
 # The offline literature `fixtures` provider reads; the demo needs nothing else.
 COPY tests/fixtures/literature/ ./tests/fixtures/literature/
 COPY --from=ui /ui/dist/ ./ui/

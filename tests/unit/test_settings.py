@@ -99,6 +99,20 @@ def test_apply_override_refuses_a_path_through_a_scalar():
         apply_override(tree, "a.b", "2")
 
 
+def test_default_ingest_limit_preserves_legacy_digest_and_override_is_routed(config, monkeypatch):
+    import pheasant_lab.settings as settings
+
+    hashed = []
+    real = settings.digest
+    monkeypatch.setattr(settings, "digest", lambda payload: hashed.append(payload) or real(payload))
+    original = config.digest()
+    assert "ingest_max_request_bytes" not in hashed[-1]["pheasant"]
+    assert settings.OVERRIDE_FILES["ingest_max_request_bytes"] == "pheasant"
+    config.pheasant.ingest_max_request_bytes = 32 * 1024 * 1024
+    assert config.digest() != original
+    assert hashed[-1]["pheasant"]["ingest_max_request_bytes"] == 32 * 1024 * 1024
+
+
 def _write_variant(tmp_path: Path, mutate) -> Path:
     payload = yaml.safe_load((REPO / "configs" / "demo.yaml").read_text())
     mutate(payload)

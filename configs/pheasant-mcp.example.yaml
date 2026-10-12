@@ -31,6 +31,9 @@ connect_timeout_seconds: 10
 max_retries: 3
 retry_backoff_seconds: 1.0
 retry_backoff_max_seconds: 20.0
+# Whole encoded request (base64 documents + metadata + JSON-RPC), also capped
+# at 20 documents. Keep below the region's MCP limit (1024 MiB on the lab).
+ingest_max_request_bytes: 524288000  # 500 MiB; approximately 375 MiB of raw PDFs
 
 knowledge_base: ${PHEASANT_KNOWLEDGE_BASE:-pheasant-lab}
 source_name: ${PHEASANT_SOURCE_NAME:-swarm-lab-literature}

@@ -15,6 +15,18 @@ from dataclasses import dataclass
 from typing import Any
 
 JSONRPC_VERSION = "2.0"
+_JSON_ENCODER = json.JSONEncoder()
+
+
+def encode_message(message: Mapping[str, Any]) -> bytes:
+    """The HTTP wire encoding, shared with submission size accounting."""
+    return _JSON_ENCODER.encode(message).encode("utf-8")
+
+
+def encoded_json_size(value: Any) -> int:
+    """Count wire bytes without allocating a second copy of the whole batch."""
+    return sum(len(part.encode("utf-8")) for part in _JSON_ENCODER.iterencode(value))
+
 
 # JSON-RPC reserved codes.
 PARSE_ERROR = -32700

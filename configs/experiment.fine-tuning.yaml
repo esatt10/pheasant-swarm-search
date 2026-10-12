@@ -1,0 +1,80 @@
+# One topic per run (`--topic`), all writing to the swarm-lab-fine-tuning source.
+# This plan is intentionally deeper than the prior context-engineering search.
+# Start with `plan` and `doctor`; `collect` spends the configured budget.
+experiment:
+  name: fine-tuning-research
+  seed: 261012
+  cost_budget_usd: 75.00
+  runtime_budget_minutes: 240
+  topics_file: configs/topics.fine-tuning.yaml
+  output_root: runs
+  models_file: configs/models.fine-tuning.yaml
+  metrics_file: configs/metrics.example.yaml
+  proof_policy_file: configs/proof-policy.example.yaml
+  pheasant_file: configs/pheasant-fine-tuning.yaml
+  logging_file: configs/logging.example.yaml
+
+collection:
+  profile: scholarly
+  max_depth: 6
+  max_research_agents: 8
+  max_concurrent_agents: 3
+  max_search_rounds_per_agent: 12
+  max_sources_per_subtopic: 45
+  max_results_per_provider: 8
+  permit_abstract_only: true
+  download_full_text_only_when_licensed: true
+  full_text_mode: prefer
+  provider_timeout_seconds: 20
+  provider_max_retries: 3
+
+stopping:
+  maximum_unresolved_critical_contradictions: 0
+  marginal_unique_claim_window: 4
+  marginal_unique_claim_threshold: 0.06
+  minimum_ingest_receipt_rate: 0.98
+  consecutive_saturated_rounds: 2
+  evaluation_budget_reserve_fraction: 0.40
+
+benchmark:
+  freeze_before_evaluation: true
+  questions_per_topic: 24
+  composition:
+    atomic_fact: 6
+    multi_source_synthesis: 6
+    mechanism_or_causality: 4
+    contradiction_or_uncertainty: 3
+    temporal_or_versioned: 2
+    source_identification: 1
+    abstention: 2
+  require_expected_evidence_ids: true
+  blind_arm_order: true
+  cohorts:
+    anchor_fraction: 0.25
+    learned_fraction: 0.25
+    temporal_holdout_fraction: 0.25
+    control_fraction: 0.15
+    invariant_fraction: 0.10
+
+arms: [S0, C0, P0, P1, P2]
+
+replay:
+  mode: current_state
+  repetitions: 3
+  fresh_session_per_question: true
+  randomize_arm_order: true
+  record_pheasant_snapshot: true
+  pairing_policy: complete_pairs_only
+  max_search_rounds_per_answer: 4
+  max_results_per_search: 10
+
+privacy:
+  store_prompt_text: true
+  store_response_text: true
+  redact_secrets: true
+  hash_principal_identifiers: true
+  allow_remote_trace_export: false
+
+refinement:
+  enabled: true
+  submit_to_pheasant: false

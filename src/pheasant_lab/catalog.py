@@ -445,6 +445,13 @@ DOCS: dict[str, Doc] = {
     "stopping.consecutive_saturated_rounds": Doc(
         "Saturated rounds in a row before collection stops.", "1-5.", minimum=1, maximum=5
     ),
+    "stopping.minimum_original_pdf_fraction": Doc(
+        "Minimum fraction of collected sources carrying an original PDF. Abstract-only sources "
+        "do not satisfy this gate; zero disables the minimum.",
+        _FRACTION,
+        minimum=0,
+        maximum=1,
+    ),
     "stopping.evaluation_budget_reserve_fraction": Doc(
         "Share of the budget collection may never touch, kept for the arms and reports. Must not "
         "exceed budget.allocation.evaluation + reserve.",
@@ -800,6 +807,16 @@ DOCS: dict[str, Doc] = {
         "The pheasant knowledge base (its `pheasant.name`) the lab writes to and searches. Use one "
         "that holds nothing else.",
         "A knowledge base name, e.g. pheasant-lab.",
+    ),
+    "ingest_max_request_bytes": Doc(
+        "Maximum encoded MCP submission request, including base64 files, metadata and JSON-RPC. "
+        "Batches also contain at most 20 documents. Keep this below the region's whole-request "
+        "limit; the 500 MiB default leaves headroom on the lab's 1024 MiB endpoint. A document "
+        "that cannot fit alone is recorded as a local failure without being sent.",
+        "A positive byte count; 524288000 is 500 MiB. About 375 MiB of raw PDFs fit at that limit.",
+        minimum=1,
+        unit="bytes",
+        advanced=True,
     ),
     "source_name": Doc(
         "The source the lab registers for the documents it submits. The lab writes only to a "

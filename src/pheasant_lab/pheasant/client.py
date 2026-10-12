@@ -54,6 +54,10 @@ IDEMPOTENT_TOOL_PREFIXES = (
 class TransportError(RuntimeError):
     """The transport failed before a JSON-RPC message could be exchanged."""
 
+    def __init__(self, message: str, *, status_code: int | None = None) -> None:
+        super().__init__(message)
+        self.status_code = status_code
+
 
 class Transport(Protocol):  # pragma: no cover - structural
     def open(self) -> None: ...
@@ -139,7 +143,7 @@ class StreamableHttpTransport:
             self.open()
         response = self._client.post(
             self.url,
-            content=json.dumps(message).encode("utf-8"),
+            content=protocol.encode_message(message),
             headers=self._headers(),
             timeout=httpx.Timeout(timeout or self.timeout, connect=self.connect_timeout),
         )
@@ -156,7 +160,8 @@ class StreamableHttpTransport:
             )
         if response.status_code >= 400:
             raise TransportError(
-                f"HTTP {response.status_code} from {self.url}: {response.text[:400]}"
+                f"HTTP {response.status_code} from {self.url}: {response.text[:400]}",
+                status_code=response.status_code,
             )
         content_type = response.headers.get("content-type", "")
         if content_type.startswith("text/event-stream"):
@@ -178,7 +183,7 @@ class StreamableHttpTransport:
             self.open()
         response = self._client.post(
             self.url,
-            content=json.dumps(message).encode("utf-8"),
+            content=protocol.encode_message(message),
             headers=self._headers(),
             timeout=httpx.Timeout(self.timeout, connect=self.connect_timeout),
         )
@@ -733,6 +738,9 @@ class PheasantClient:
 
     @staticmethod
     def _retryable_error(exc: BaseException) -> bool:
+        if isinstance(exc, TransportError) and exc.status_code == 413:
+            # Replaying identical bytes cannot make an oversized request fit.
+            return False
         if isinstance(exc, RateLimited | TimeoutError):
             return True
         if isinstance(exc, JsonRpcError):

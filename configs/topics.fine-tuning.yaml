@@ -1,0 +1,225 @@
+# Research program for the swarm-lab-fine-tuning Pheasant source.
+# Run each topic separately with `--topic`; all runs can use the same source.
+# Questions in `details` are the planner's brief, not pre-answered claims.
+topics:
+  - id: topic-ft-scope-objectives
+    title: Choosing the objective and scope of custom LLM adaptation
+    intent: >-
+      Determine when a custom language model should be fine-tuned, what behavior
+      the tuning should change, and which training objective and base model are
+      justified by evidence rather than by fashion.
+    details: |-
+      Research questions:
+      1. What measurable task failure is being addressed, and what untuned baseline establishes it?
+      2. When do prompting, retrieval, tool use, continued pretraining, supervised fine-tuning, and preference optimization solve different problems?
+      3. How do tokenizer, context length, license, model architecture, modality, and existing capabilities constrain base-model choice?
+      4. What behavior belongs in weights versus an external knowledge store, and how does update frequency change that decision?
+      5. Which objective maps to domain terminology, instruction following, output format, tool calling, reasoning, style, or safety behavior?
+      6. How should data volume, compute, latency, privacy, and serving constraints change the choice between full tuning and adapters?
+      7. Which baselines and ablations would falsify the claim that fine-tuning is necessary?
+      8. Which findings are demonstrated across model families, and which are specific to one model or benchmark?
+    seed_terms:
+      - continued pretraining versus instruction fine tuning language models
+      - domain adaptive pretraining versus retrieval augmented generation
+      - supervised fine tuning task adaptation baseline ablation
+      - foundation model selection tokenizer license context length
+    date_range: { from: 2018-01-01, to: null }
+    facets:
+      - { id: target, label: "Target behavior, baseline and measurable success criterion", weight: 3 }
+      - { id: alternatives, label: "Prompting, retrieval, tools and training decision boundary", weight: 3 }
+      - { id: objectives, label: "Continued pretraining, SFT and preference objective selection", weight: 3 }
+      - { id: base-model, label: "Base-model, tokenizer, context and license constraints", weight: 2 }
+      - { id: constraints, label: "Compute, privacy, latency and update-frequency tradeoffs", weight: 2 }
+      - { id: evidence, label: "Ablations, transfer limits and contradictory findings", weight: 2 }
+    source_authority: &ft_authority
+      family_key: [first_author_affiliation, corresponding_author, registrable_domain]
+      preferred_types: [journal_article, proceedings, preprint, company_publication]
+      minimum_peer_reviewed: 2
+
+  - id: topic-ft-data-pipeline
+    title: Dataset acquisition, curation and provenance for LLM tuning
+    intent: >-
+      Specify the data pipeline and persistent record structures needed to turn
+      raw source material, demonstrations and feedback into licensed, traceable,
+      versioned training, validation and test sets.
+    details: |-
+      Research questions:
+      1. What fields must a raw-document record, example record, annotation record, source manifest and dataset version contain?
+      2. How are consent, license, permitted use, retention, deletion and personally identifying information recorded and enforced per example?
+      3. How are document IDs, content hashes, provenance edges, annotator IDs and transformation versions preserved through every stage?
+      4. How should quality filtering, language detection, normalization, exact and near deduplication, and semantic clustering be ordered and audited?
+      5. How are synthetic examples generated, verified, weighted and kept from overwhelming independent human evidence?
+      6. How should train, validation and holdout splits account for source family, user, document, time and near duplicates to prevent leakage?
+      7. How are mixtures, sampling weights, difficult examples and curriculum decisions represented reproducibly?
+      8. What checks catch mislabeled, poisoned, copyrighted, private or benchmark-contaminated records before training?
+      9. What immutable artifacts and lineage links allow a dataset version to be reconstructed or a bad source to be removed?
+    seed_terms:
+      - instruction tuning dataset provenance schema manifest
+      - LLM training data near duplicate benchmark contamination
+      - data mixture sampling instruction tuning synthetic data quality
+      - machine learning dataset lineage licensing PII removal
+    date_range: { from: 2018-01-01, to: null }
+    facets:
+      - { id: schemas, label: "Raw, example, annotation, manifest and version schemas", weight: 3 }
+      - { id: provenance, label: "License, consent, privacy, source lineage and deletion", weight: 3 }
+      - { id: curation, label: "Filtering, deduplication and quality control algorithms", weight: 3 }
+      - { id: splits, label: "Leakage-safe splits and contamination checks", weight: 3 }
+      - { id: mixtures, label: "Mixtures, synthetic data, weighting and curriculum", weight: 2 }
+      - { id: reproducibility, label: "Immutable dataset versions and rebuild process", weight: 2 }
+    source_authority: *ft_authority
+
+  - id: topic-ft-example-to-tensor
+    title: Training example formats, tokenization, packing and loss masks
+    intent: >-
+      Trace an individual tuning example into the exact tensors consumed by a
+      trainer, including chat templates, role boundaries, preference pairs,
+      sequence packing, padding and label masks.
+    details: |-
+      Research questions:
+      1. What canonical schemas represent plain text, prompt-completion, multi-turn conversation, tool traces and preference pairs?
+      2. Which roles, special tokens, tool-call boundaries and end-of-turn markers must the chat template serialize, and how is template version pinned?
+      3. How are input_ids, attention_mask, position_ids, labels, loss_mask and sample weights derived for each example type?
+      4. Which tokens receive loss in causal pretraining, completion-only SFT, assistant-only SFT, tool-use SFT and preference optimization?
+      5. How do padding, truncation, sliding windows, sequence packing and document-boundary isolation affect leakage and training efficiency?
+      6. How are chosen and rejected completions paired with the identical prompt, and what happens when truncation changes the comparison?
+      7. What validation invariants should a collator assert before a batch reaches the model?
+      8. How can a small hand-computed batch prove that masks, position resets and loss denominators are correct?
+    seed_terms:
+      - conversational SFT dataset format assistant only loss mask
+      - chat template tool calling training tokenization labels
+      - sequence packing attention mask document boundary causal language model
+      - DPO prompt chosen rejected dataset tokenization truncation
+    date_range: { from: 2019-01-01, to: null }
+    facets:
+      - { id: records, label: "Text, conversation, tool trace and preference record contracts", weight: 3 }
+      - { id: serialization, label: "Tokenizer and chat-template serialization", weight: 3 }
+      - { id: tensors, label: "Token, label, position, attention and weight tensor structures", weight: 3 }
+      - { id: masks, label: "Objective-specific loss masks and boundaries", weight: 3 }
+      - { id: batching, label: "Packing, padding, truncation and collator invariants", weight: 3 }
+      - { id: verification, label: "Hand-checkable examples and failure tests", weight: 2 }
+    source_authority: *ft_authority
+
+  - id: topic-ft-algorithms
+    title: Fine-tuning algorithms, parameter updates and memory tradeoffs
+    intent: >-
+      Compare the mathematical objectives and update structures of full tuning,
+      parameter-efficient tuning and quantized tuning, including optimizer state,
+      gradients, activation memory and failure modes.
+    details: |-
+      Research questions:
+      1. What is the token-level negative-log-likelihood objective, and how do loss reduction and effective batch size affect optimization?
+      2. How do full fine-tuning, partial-layer tuning, adapters, prefix tuning, LoRA and QLoRA change trainable parameters and forward computation?
+      3. How do LoRA rank, alpha, target modules, initialization, dropout and merging affect quality, memory and serving?
+      4. What quantization and compute dtypes are used in QLoRA, and which tensors remain trainable or full precision?
+      5. How do AdamW states, low-bit optimizers, gradient accumulation, checkpointing and mixed precision change peak-memory estimates?
+      6. How should learning rate, warmup, schedule, batch tokens, epochs and early stopping be chosen and logged?
+      7. When do catastrophic forgetting, overfitting, instability or format collapse appear, and what controlled comparisons detect them?
+      8. What evidence supports or limits claims about full tuning versus parameter-efficient methods across tasks and model sizes?
+    seed_terms:
+      - LoRA low rank adaptation rank target modules ablation
+      - QLoRA NF4 double quantization paged optimizer
+      - full fine tuning versus parameter efficient fine tuning LLM memory
+      - LLM supervised fine tuning AdamW gradient checkpointing forgetting
+    date_range: { from: 2019-01-01, to: null }
+    facets:
+      - { id: loss, label: "Causal loss, reduction and optimization mechanics", weight: 3 }
+      - { id: peft, label: "Adapters, LoRA and partial-parameter update structures", weight: 3 }
+      - { id: quantization, label: "Quantized tuning and precision constraints", weight: 3 }
+      - { id: memory, label: "Parameter, gradient, optimizer and activation memory accounting", weight: 3 }
+      - { id: schedules, label: "Learning-rate, batch, epoch and stopping decisions", weight: 2 }
+      - { id: failures, label: "Forgetting, instability and controlled ablations", weight: 2 }
+    source_authority: *ft_authority
+
+  - id: topic-ft-preference-reinforcement
+    title: Preference data, alignment objectives and reinforcement fine-tuning
+    intent: >-
+      Explain the data structures and algorithmic assumptions behind pairwise
+      preference tuning and reward-based reinforcement tuning, and identify
+      when each method is justified for a custom LLM.
+    details: |-
+      Research questions:
+      1. What makes a valid preference comparison, and how are prompt, candidates, rater, rubric, tie, confidence and disagreement recorded?
+      2. How are preferences collected, adjudicated and split to prevent prompt or annotator leakage?
+      3. How does a reward model map a prompt-response pair to a score, and how is it calibrated and evaluated?
+      4. How do DPO-style objectives use policy and reference log probabilities, pairwise margins and a temperature or beta parameter?
+      5. Which assumptions separate offline preference optimization from on-policy RL with sampled responses and verifiable rewards?
+      6. What state must be persisted for rollouts, rewards, reference policy, advantage estimates, KL control and optimizer steps?
+      7. How do reward hacking, length bias, annotator bias, mode collapse and policy drift appear in diagnostics?
+      8. Which comparative experiments justify a preference or reinforcement stage after SFT?
+    seed_terms:
+      - direct preference optimization reference policy log probability objective
+      - RLHF reward model preference pair schema annotator disagreement
+      - on policy reinforcement fine tuning verifiable rewards KL control
+      - preference optimization length bias reward hacking evaluation
+    date_range: { from: 2020-01-01, to: null }
+    facets:
+      - { id: preference-records, label: "Pairwise data, raters, rubrics and disagreement", weight: 3 }
+      - { id: reward-model, label: "Reward model objective and validation", weight: 3 }
+      - { id: direct-objectives, label: "DPO-style reference-policy objectives", weight: 3 }
+      - { id: rl-state, label: "Rollouts, rewards, advantages and KL-control state", weight: 3 }
+      - { id: failure, label: "Bias, hacking, collapse and drift diagnostics", weight: 2 }
+      - { id: comparisons, label: "Ablations against SFT and competing methods", weight: 2 }
+    source_authority: *ft_authority
+
+  - id: topic-ft-training-system
+    title: Fine-tuning tooling, distributed execution and recoverable checkpoints
+    intent: >-
+      Design the practical training system: configuration, data loading,
+      distributed model state, checkpoint format, observability, recovery,
+      adapter packaging and inference compatibility.
+    details: |-
+      Research questions:
+      1. What components and interfaces separate data preparation, tokenizer, collator, model, trainer, evaluator, registry and serving?
+      2. What fields belong in an immutable training manifest so an experiment can be reconstructed?
+      3. How are parameters, gradients and optimizer states partitioned under data parallelism, FSDP and ZeRO, and what topology assumptions matter?
+      4. How do mixed precision, accumulation, recomputation and attention kernels interact with memory and throughput?
+      5. What must an exact-resume checkpoint contain: model or adapter weights, optimizer, scheduler, RNG, sampler cursor, dataset version and global step?
+      6. How are sharded checkpoints validated, converted and loaded for single-device serving without silent tensor or tokenizer mismatch?
+      7. How should telemetry capture token throughput, losses, gradients, learning rate, memory, cost and failed examples without leaking private content?
+      8. How should model, adapter, tokenizer, template, data and evaluation artifacts be linked and versioned in a registry?
+      9. Which failure injections prove that an interrupted run resumes deterministically enough for its intended use?
+    seed_terms:
+      - PyTorch FSDP sharded checkpoint optimizer state resume
+      - DeepSpeed ZeRO optimizer gradient parameter partitioning
+      - LLM fine tuning reproducibility RNG sampler state checkpoint
+      - PEFT adapter model card tokenizer chat template deployment
+    date_range: { from: 2019-01-01, to: null }
+    facets:
+      - { id: components, label: "Pipeline components and interface contracts", weight: 3 }
+      - { id: manifest, label: "Immutable run configuration and artifact lineage", weight: 3 }
+      - { id: distribution, label: "Distributed state partitioning and precision", weight: 3 }
+      - { id: checkpoint, label: "Checkpoint contents, exact resume and conversion", weight: 3 }
+      - { id: telemetry, label: "Training telemetry, privacy and failure detection", weight: 2 }
+      - { id: packaging, label: "Adapter packaging and serving compatibility", weight: 2 }
+    source_authority: *ft_authority
+
+  - id: topic-ft-evaluation-release
+    title: Causal evaluation, safety checks and release process for tuned LLMs
+    intent: >-
+      Define a credible decision process for promoting a tuned model, including
+      held-out task performance, regression and safety tests, statistical
+      uncertainty, reproducibility and monitoring after deployment.
+    details: |-
+      Research questions:
+      1. Which task-specific and general-capability baselines should be measured before tuning?
+      2. How should time, source and user holdouts be constructed so training examples cannot contaminate evaluation?
+      3. What metrics assess correctness, calibration, abstention, format, tool use, latency and cost with explicit denominators?
+      4. How are paired comparisons, uncertainty intervals and judge agreement reported without overstating small gains?
+      5. Which tests reveal regressions in general ability, memorization, privacy, refusal, prompt injection resistance or harmful outputs?
+      6. Which ablations isolate gains from data quality, data volume, objective, base model, adapter choice and inference settings?
+      7. What promotion gates, rollback artifacts and canary monitoring are needed before the tuned model serves real traffic?
+      8. When should a new data slice, retune or external retrieval update be preferred after observed drift?
+    seed_terms:
+      - fine tuned LLM evaluation held out contamination paired bootstrap
+      - instruction tuning regression benchmark forgetting memorization privacy
+      - model promotion gate canary rollback fine tuned adapter
+      - language model judge bias inter rater agreement evaluation
+    date_range: { from: 2019-01-01, to: null }
+    facets:
+      - { id: baselines, label: "Untuned and competing-method baselines", weight: 3 }
+      - { id: holdouts, label: "Contamination-resistant holdouts and provenance", weight: 3 }
+      - { id: metrics, label: "Task, calibration, format, safety, latency and cost metrics", weight: 3 }
+      - { id: inference, label: "Paired inference, uncertainty and judge reliability", weight: 3 }
+      - { id: regressions, label: "Forgetting, memorization, privacy and safety regression", weight: 3 }
+      - { id: lifecycle, label: "Promotion, canary, rollback and retuning triggers", weight: 2 }
+    source_authority: *ft_authority

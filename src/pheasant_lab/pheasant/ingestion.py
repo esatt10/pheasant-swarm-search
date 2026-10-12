@@ -19,6 +19,7 @@ from typing import Any
 from .. import ids
 from ..hashing import digest, digest_file, digest_text
 from ..settings import PheasantFile
+from . import protocol
 from .capabilities import CapabilityMap
 from .client import PheasantClient
 from .protocol import McpToolError
@@ -112,6 +113,24 @@ class IngestRequest:
             text = base64.b64encode(content).decode("ascii")
         elif self.payload.local_artifact_ref:
             raise ValueError("original files require a configured ingest content_encoding argument")
+        return self._document(text, argument_map)
+
+    def encoded_document_size(self, argument_map: Mapping[str, str]) -> int:
+        """Exact base64 JSON size, without reading and allocating the file payload."""
+        if not argument_map.get("content_encoding"):
+            return protocol.encoded_json_size(self.as_document(argument_map))
+        raw_bytes = (
+            Path(self.payload.local_artifact_ref).stat().st_size
+            if self.payload.local_artifact_ref
+            else len(self.payload.text.encode("utf-8"))
+        )
+        # Base64 is ASCII and needs no JSON escaping. The empty string's quotes
+        # are already included in the document skeleton's encoded size.
+        return protocol.encoded_json_size(self._document("", argument_map)) + 4 * (
+            (raw_bytes + 2) // 3
+        )
+
+    def _document(self, text: str, argument_map: Mapping[str, str]) -> dict[str, Any]:
         return {
             argument_map.get("document_path", "relative_path"): self.path(),
             argument_map.get("document_text", "text"): text,
@@ -187,32 +206,50 @@ class Ingestor:
     def submit(
         self, requests: Sequence[IngestRequest], *, batch_size: int = 20
     ) -> list[IngestReceipt]:
-        """Submit in batches, one receipt per item.
-
-        Batching is bounded rather than unbounded because one malformed item
-        inside a single transaction takes every good item beside it down; a
-        bounded batch keeps that blast radius to something a retry can afford.
-        """
-
+        """Bound both document count and the entire encoded request's bytes."""
+        if batch_size < 1:
+            raise ValueError("batch_size must be positive")
         tool = self.capabilities.tool("ingest")
         receipts: list[IngestReceipt] = []
-        for start in range(0, len(requests), batch_size):
-            chunk = list(requests[start : start + batch_size])
-            receipts.extend(self._submit_batch(tool, chunk))
+        limit = self.config.ingest_max_request_bytes
+        # Reserve 20 digits for the client's monotonic JSON-RPC request id.
+        # The batch's submission id has a fixed length regardless of its keys.
+        envelope_bytes = protocol.encoded_json_size(
+            protocol.request(
+                protocol.METHOD_TOOLS_CALL,
+                {
+                    "name": tool,
+                    "arguments": self._submission_arguments([], "submission-" + "0" * 16),
+                },
+                2**64 - 1,
+            )
+        )
+        chunk: list[IngestRequest] = []
+        documents: list[dict[str, Any]] = []
+        request_bytes = envelope_bytes
+        for request in requests:
+            document_bytes = request.encoded_document_size(self._argument_map)
+            added_bytes = document_bytes + (2 if chunk else 0)  # JSON list separator: ", "
+            if chunk and (len(chunk) >= batch_size or request_bytes + added_bytes > limit):
+                receipts.extend(self._submit_batch(tool, chunk, documents, request_bytes))
+                chunk, documents = [], []
+                request_bytes = envelope_bytes
+            if envelope_bytes + document_bytes > limit:
+                receipts.append(self._oversized(request, envelope_bytes + document_bytes))
+                continue
+            # Encode each original file once, only after the previous batch
+            # has been flushed, and never allocate an oversized base64 payload.
+            document = request.as_document(self._argument_map)
+            request_bytes += document_bytes + (2 if chunk else 0)
+            chunk.append(request)
+            documents.append(document)
+        if chunk:
+            receipts.extend(self._submit_batch(tool, chunk, documents, request_bytes))
         return receipts
 
-    def _submit_batch(self, tool: str, chunk: Sequence[IngestRequest]) -> list[IngestReceipt]:
-        submission_id = (
-            "submission-" + digest([r.idempotency_key for r in chunk]).removeprefix("sha256:")[:16]
-        )
-        documents = [request.as_document(self._argument_map) for request in chunk]
-        key_to_source = {request.idempotency_key: request.source_id for request in chunk}
-        digests = {request.idempotency_key: request.content_digest for request in chunk}
-        for request in chunk:
-            self.ledger.note_submission(request.idempotency_key)
-            if self.tracer is not None:
-                self.tracer.append("ingest-requests.jsonl", request.as_record())
-
+    def _submission_arguments(
+        self, documents: list[dict[str, Any]], submission_id: str
+    ) -> dict[str, Any]:
         arguments = {
             self._kb_field: self.config.knowledge_base,
             self._argument_map.get("documents", "documents"): documents,
@@ -221,6 +258,67 @@ class Ingestor:
         }
         if self._argument_map.get("content_encoding"):
             arguments[self._argument_map["content_encoding"]] = "base64"
+        return arguments
+
+    def _note_request(self, request: IngestRequest) -> None:
+        self.ledger.note_submission(request.idempotency_key)
+        if self.tracer is not None:
+            self.tracer.append("ingest-requests.jsonl", request.as_record())
+
+    def _oversized(self, request: IngestRequest, request_bytes: int) -> IngestReceipt:
+        self._note_request(request)
+        receipt = IngestReceipt(
+            receipt_id=f"receipt-local-size-{request.idempotency_key[-12:]}",
+            run_id=self.run_id,
+            source_id=request.source_id,
+            idempotency_key=request.idempotency_key,
+            submission_id=None,  # No request reached the region.
+            status="failed",
+            content_digest=request.content_digest,
+            error_code="REQUEST_TOO_LARGE",
+            error_message=(
+                f"Document {request.path()} needs {request_bytes} encoded MCP request bytes, "
+                f"exceeding ingest_max_request_bytes={self.config.ingest_max_request_bytes}; "
+                "not sent. Increase the setting only within the region's whole-request limit."
+            ),
+            retryable=False,
+        )
+        self.ledger.record(receipt)
+        if self.tracer is not None:
+            self.tracer.append("ingest-receipts.jsonl", receipt.as_dict())
+        self._emit(
+            "ingest.batch",
+            "failed",
+            source_id=request.source_id,
+            request_bytes=request_bytes,
+            max_request_bytes=self.config.ingest_max_request_bytes,
+            error_code=receipt.error_code,
+        )
+        return receipt
+
+    def _submit_batch(
+        self,
+        tool: str,
+        chunk: Sequence[IngestRequest],
+        documents: list[dict[str, Any]],
+        request_bytes: int,
+    ) -> list[IngestReceipt]:
+        submission_id = (
+            "submission-" + digest([r.idempotency_key for r in chunk]).removeprefix("sha256:")[:16]
+        )
+        key_to_source = {request.idempotency_key: request.source_id for request in chunk}
+        digests = {request.idempotency_key: request.content_digest for request in chunk}
+        for request in chunk:
+            self._note_request(request)
+        arguments = self._submission_arguments(documents, submission_id)
+        self._emit(
+            "ingest.batch",
+            "submitted",
+            submission_id=submission_id,
+            document_count=len(chunk),
+            request_bytes=request_bytes,
+            max_request_bytes=self.config.ingest_max_request_bytes,
+        )
         outcome = self.client.call(
             tool,
             arguments,
@@ -447,6 +545,7 @@ class Ingestor:
         if self.tracer is None:
             return
         status = {
+            "failed": "failed",
             "crossed": "succeeded",
             "completed": "succeeded",
             "timed_out": "failed",
