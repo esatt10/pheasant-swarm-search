@@ -17,6 +17,7 @@ from ..evaluation.classification import Classification
 from ..evaluation.engine import COMPARISONS, EvaluationResult
 from ..evaluation.gates import Verdict
 from ..lifecycle import RunPaths, isonow
+from .context import ARM_NAMES, COMPARISON_QUESTIONS, RunContext, arm
 
 HEALTH_KEYS = (
     "run_status",
@@ -43,8 +44,14 @@ def health_vector(
     collection_sufficient: bool,
     receipt_rate: float | None,
     cost_usd: float,
+    tuning_applied: bool | None = None,
 ) -> dict[str, Any]:
-    """The compact vector at the top of the report. Never one score."""
+    """The compact vector at the top of the report. Never one score.
+
+    ``tuning_applied=False`` means P2 ran with no tuned strategy, so P2 and
+    P1 were the same configuration and their difference is not a tuning
+    gain: it is reported as ``None``, never as a measured ``0``.
+    """
 
     def delta(
         metric: str, treatment: str, baseline: str, cohort: str | None = None
@@ -77,7 +84,7 @@ def health_vector(
         "pheasant_ingest_receipt_rate": receipt_rate,
         "P0_vs_C0_fact_f1_delta": delta("fact_f1", "P0", "C0"),
         "P1_vs_P0_memory_gain": delta("fact_f1", "P1", "P0"),
-        "P2_vs_P1_tuning_gain": delta("fact_f1", "P2", "P1"),
+        "P2_vs_P1_tuning_gain": None if tuning_applied is False else delta("fact_f1", "P2", "P1"),
         "P2_specialist_gap": delta("fact_f1", "P2", "S0"),
         "specialist_noninferiority": noninferiority.get("status", "insufficient_evidence"),
         "negative_exposure_delta": delta("negative_exposure_at_k", "P1", "P0"),
@@ -96,6 +103,7 @@ def write_summary(
     vector: Mapping[str, Any],
     collection: Mapping[str, Any] | None = None,
     limitations: Sequence[str] = (),
+    context: RunContext | None = None,
 ) -> Path:
     lines: list[str] = []
     lines.append(f"# {manifest.get('experiment_name', 'run')} — summary")
@@ -107,6 +115,8 @@ def write_summary(
         lines.append(f"{key}: {_yaml(vector.get(key))}")
     lines.append("```")
     lines.append("")
+
+    lines.extend(_plain_words(result, context))
 
     lines.append("## What this run can and cannot say")
     lines.append("")
@@ -139,10 +149,10 @@ def write_summary(
     lines.append("")
     if not result.non_inferiority:
         lines.append("Not evaluated: the specialist arm or a Pheasant arm did not run.")
-    for arm, decision in sorted(result.non_inferiority.items()):
+    for arm_id, decision in sorted(result.non_inferiority.items()):
         answer = decision.get("rivals_specialist")
         label = {True: "yes", False: "no", None: "insufficient evidence"}[answer]
-        lines.append(f"### `{arm}` vs `S0`: **{label}**")
+        lines.append(f"### {arm(arm_id)} vs {arm('S0')}: **{label}**")
         lines.append("")
         for metric, body in sorted((decision.get("metrics") or {}).items()):
             overall = (body or {}).get("overall") or {}
@@ -192,8 +202,15 @@ def write_summary(
 
     lines.append("## Where to look next")
     lines.append("")
+    lines.append(
+        "- `query-detail.md` — every question in words: the expected answer, what each arm "
+        "said and which documents it cited"
+    )
     lines.append("- `arm-comparison.md` — every paired delta with its operands and diagnostics")
-    lines.append("- `worst-regressions.md` — the questions that got worse, with their traces")
+    lines.append(
+        "- `worst-regressions.md` — the questions that got worse, with both answers and the "
+        "likely cause"
+    )
     lines.append("- `errors-and-retries.md` — every failure, retry and exclusion")
     lines.append(
         "- `refinement-candidates.md` — what this run suggests changing, and on what evidence"
@@ -224,7 +241,9 @@ def _comparison_table(result: EvaluationResult) -> str:
     return "\n".join(rows) if len(rows) > 2 else "_no paired comparison produced enough evidence_"
 
 
-def write_arm_comparison(paths: RunPaths, result: EvaluationResult) -> Path:
+def write_arm_comparison(
+    paths: RunPaths, result: EvaluationResult, context: RunContext | None = None
+) -> Path:
     lines = ["# Arm comparison", ""]
     lines.append(
         "Every delta below is **paired per question**: a question enters a comparison only when "
@@ -240,10 +259,25 @@ def write_arm_comparison(paths: RunPaths, result: EvaluationResult) -> Path:
         ]
         if not rows:
             continue
-        lines.append(f"## `{treatment}` − `{baseline}`")
+        lines.append(f"## {arm(treatment)} − {arm(baseline)}")
         lines.append("")
-        lines.append(f"_{meaning}_")
+        question = COMPARISON_QUESTIONS.get((treatment, baseline))
+        lines.append(f"**{question}** _{meaning}_" if question else f"_{meaning}_")
         lines.append("")
+        no_treatment = _no_treatment(treatment, baseline, context)
+        if no_treatment:
+            lines.append(f"> **Not a measurement of tuning in this run.** {no_treatment}")
+            lines.append("")
+        overall = [r for r in rows if r.cohort is None]
+        if overall:
+            lines.append("| metric | " + baseline + " | " + treatment + " | change | verdict |")
+            lines.append("|---|---:|---:|---:|---|")
+            for row in sorted(overall, key=lambda r: r.metric):
+                lines.append(
+                    f"| `{row.metric}` | {_num(row.baseline_mean)} | {_num(row.treatment_mean)} | "
+                    f"{_num(row.absolute_delta, sign=True)} | {_verdict(row)} |"
+                )
+            lines.append("")
         for row in sorted(rows, key=lambda r: (r.metric, r.cohort or "")):
             lines.extend(_classification_block(row))
         lines.append("")
@@ -257,9 +291,12 @@ def _classification_block(row: Classification) -> list[str]:
     lines.append(f"- treatment `{row.treatment_arm}` mean: {_num(row.treatment_mean)}")
     lines.append(
         f"- absolute delta: {_num(row.absolute_delta, sign=True)}"
+        # These metrics are fractions from 0 to 1, so a delta of +0.25 is a
+        # quarter of the scale - 25 percentage points, not 0.25 of one.
         + (
-            " percentage points"
-            if row.metric.endswith(("rate", "recall", "precision", "f1"))
+            f" on a 0–1 scale ({_points(row.absolute_delta)})"
+            if row.metric.endswith(("rate", "recall", "precision", "f1", "accuracy"))
+            and row.absolute_delta is not None
             else ""
         )
     )
@@ -426,3 +463,100 @@ def _yaml(value: Any) -> str:
     if isinstance(value, float):
         return f"{value:.6g}"
     return str(value)
+
+
+# -- plain words -----------------------------------------------------------
+
+#: How a classification status reads in a sentence.
+_STATUS_WORDS = {
+    "improved": "better, by more than the practical threshold",
+    "regressed": "worse, by more than the practical threshold",
+    "unchanged": "no meaningful difference",
+    "mixed": "mixed: better on some cohorts, worse on others",
+    "insufficient_evidence": "too few paired questions to tell",
+    "not_comparable": "not comparable",
+}
+
+
+def _verdict(row: Classification) -> str:
+    return _STATUS_WORDS.get(row.status.value, row.status.value)
+
+
+def _points(delta: float) -> str:
+    return f"{delta * 100:+.1f} percentage points"
+
+
+def _no_treatment(treatment: str, baseline: str, context: RunContext | None) -> str | None:
+    """Why a comparison measured nothing, when the treatment was never applied."""
+
+    if (
+        (treatment, baseline) == ("P2", "P1")
+        and context is not None
+        and context.tuning_applied is False
+    ):
+        return (
+            "P2 received no tuned query strategy: the tuner learns only from first-pass "
+            "searches that returned nothing, and none did. P2 therefore ran exactly as P1, and "
+            "any difference below is run-to-run variation, not the effect of tuning."
+        )
+    return None
+
+
+def _plain_words(result: EvaluationResult, context: RunContext | None) -> list[str]:
+    """One sentence per comparison, from the same classifications the tables show."""
+
+    lines = ["## In plain words", ""]
+    lines.append(
+        "Arms: " + " · ".join(f"**{arm_id}** {name}" for arm_id, name in ARM_NAMES.items())
+    )
+    lines.append("")
+    for treatment, baseline, _meaning in COMPARISONS:
+        question = COMPARISON_QUESTIONS.get((treatment, baseline), f"{treatment} vs {baseline}")
+        f1 = result.classification_for("fact_f1", treatment, baseline)
+        if f1 is None:
+            continue
+        skipped = _no_treatment(treatment, baseline, context)
+        if skipped:
+            lines.append(f"- **{question}** Not measured in this run. {skipped}")
+            continue
+        recall = result.classification_for("fact_recall", treatment, baseline)
+        sentence = f"- **{question}** {_verdict(f1).capitalize()}"
+        if (
+            recall is not None
+            and recall.baseline_mean is not None
+            and recall.treatment_mean is not None
+        ):
+            sentence += (
+                f": {treatment} found {recall.treatment_mean:.0%} of the required facts, "
+                f"{baseline} {recall.baseline_mean:.0%}"
+            )
+        if f1.baseline_mean is not None and f1.treatment_mean is not None:
+            sentence += f" (answer F1 {f1.baseline_mean:.2f} → {f1.treatment_mean:.2f}"
+            if f1.interval:
+                sentence += (
+                    f"; 95% interval {f1.interval.lower:+.2f} to {f1.interval.upper:+.2f}, which "
+                    f"{'excludes' if f1.interval.excludes_zero else 'includes'} zero"
+                )
+            sentence += ")"
+        sentence += f", over {f1.n} paired questions."
+        lines.append(sentence)
+    if context is not None and context.memory:
+        memory = context.memory
+        line = (
+            f"- **What P1 remembered:** {memory.get('records', 0)} memory record(s) from "
+            f"{memory.get('learned_questions', 0)} learned question(s)"
+        )
+        if memory.get("proven_questions") is not None:
+            line += (
+                f"; {memory['proven_questions']} answer(s) were proven by at least "
+                f"{memory.get('min_evidence', 1)} retrieved passage(s) and written as retrieval "
+                "proofs"
+            )
+        lines.append(line + ".")
+    lines.append("")
+    lines.append(
+        "Every sentence above is read off the tables below; where a table says "
+        "`insufficient_evidence`, the sentence says so too."
+    )
+    lines.append("")
+    return lines

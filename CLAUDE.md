@@ -213,6 +213,28 @@ docker compose up -d --build                          # lab + a pheasant 0.13.5 
   is ever an alias term. Checked against a real pheasant region, not only the
   mock.
 
+- **A document is named by its title.** `IngestRequest.path()` is
+  `<topic>/<title-slug>-<first-author>-<year>.md`, lowercase ASCII and
+  hyphens only, because pheasant shows the path as a hit's title, weights it
+  most in BM25, splits preference rules on commas and ends a Markdown link at
+  `)`. `Ingestor.assign_path` keeps a source's first path for good (restored
+  from `ingest-requests.jsonl` on resume, or a resubmission would be a second
+  document) and never gives one path to two sources (`-2`, `-3` …).
+
+- **A citation names a source through the receipts, not its spelling.**
+  `answer_metrics.compute(citation_sources=…)` resolves each cited region id
+  to the lab source before a `source` matcher or `temporal_validity`'s
+  known-negative test reads it. Before, a correct citation counted only when
+  the region id happened to embed the DOI (`10.5555_x` never matches
+  `10.5555/x`), and the forward-reach test compared artifact ids to source
+  ids and never fired. Validity and support still read citations as given.
+
+- **Reports name things.** `reports/context.py` loads question text,
+  expected facts, document titles, answers, memory records and the tuning
+  strategy from the run directory once; every report labels ids through it.
+  A comparison whose treatment was never applied (P2 with no tuned rule) says
+  "not measured" and its health-vector entry is `null`, never a measured 0.
+
 - **One selection drives the live page.** `ui/src/live/focus.ts` is the
   whole vocabulary: a focus is a branch or an arm, every panel reads it, and
   the feed, custody, facets and both visuals filter or dim from it. Panels do

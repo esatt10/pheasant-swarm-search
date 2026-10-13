@@ -311,6 +311,55 @@ def sentences(text: str) -> list[str]:
     return merged
 
 
+_FRONT_MATTER = re.compile(r"\A\s*---\r?\n.*?\r?\n---[ \t]*(?:\r?\n|\Z)", re.S)
+#: A front-matter block a preview cut off before its closing fence.
+_FRONT_MATTER_OPEN = re.compile(r"\A\s*---\r?\n(?:[A-Za-z_][\w-]*:[^\n]*(?:\n|\Z))+", re.S)
+_HEADING = re.compile(r"^\s{0,3}#{1,6}\s+")
+
+
+def document_body(text: str) -> str:
+    """``text`` without the YAML front matter a document opens with.
+
+    This lab's documents start with a metadata block (``lab_source_id``,
+    ``title``, ``venue`` …). Anything that reads a document for what it
+    *says* - an answerer, a query planner, a memory excerpt - must start
+    below it, or it reads metadata as prose.
+    """
+
+    body = _FRONT_MATTER.sub("", text or "", count=1)
+    if body == (text or ""):
+        body = _FRONT_MATTER_OPEN.sub("", body, count=1)
+    return body
+
+
+def prose(text: str) -> list[str]:
+    """A document's sentences: no front matter, no headings, line-aware.
+
+    Split line by line before sentence by sentence, because a heading has no
+    full stop and would otherwise run on into the paragraph under it.
+    """
+
+    out: list[str] = []
+    for line in document_body(text).splitlines():
+        if not line.strip() or _HEADING.match(line) or _REFERENCE_LINE.match(line):
+            continue
+        line = _LINK.sub(r"\1", line)
+        line = _CITATION_MARK.sub("", _EMPHASIS.sub("", _LINE_MARK.sub("", line)))
+        if line.strip():
+            out.extend(sentences(" ".join(line.split())))
+    return out
+
+
+#: Markdown that carries structure, not statements: a list or quote marker, a
+#: bold label, a ``[2]`` citation mark, ``[label](target)`` link syntax, and a
+#: line that is only a numbered reference to something else.
+_LINE_MARK = re.compile(r"^\s*(?:[-*+]\s+|>\s*|\d+\.\s+)")
+_EMPHASIS = re.compile(r"\*\*|__")
+_CITATION_MARK = re.compile(r"\s*(?:\[\d+\])+")
+_LINK = re.compile(r"\[([^\]]+)\]\([^)]*\)")
+_REFERENCE_LINE = re.compile(r"^\s*\[\d+\]\s+\[[^\]]+\]\([^)]*\)\s*$")
+
+
 def numbers(text: str) -> list[float]:
     found: list[float] = []
     for match in _NUMBER.finditer(text or ""):

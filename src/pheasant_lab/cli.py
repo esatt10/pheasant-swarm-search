@@ -305,6 +305,9 @@ def _connect(session: Session, args: argparse.Namespace) -> None:
             read_jsonl(session.paths.raw_file("ingest-requests.jsonl")),
         ),
     )
+    # ...and with the region paths it submitted under, so a resubmission lands
+    # on the same document rather than beside it.
+    session.ingestor.restore_paths(read_jsonl(session.paths.raw_file("ingest-requests.jsonl")))
     session.retriever = Retriever(
         client, capabilities, config.pheasant, store_text=config.privacy.store_response_text
     )
@@ -933,6 +936,11 @@ def cmd_evaluate(args: argparse.Namespace) -> int:
             region_artifact_ids=[
                 str(r.get("artifact_id")) for r in receipts if r.get("artifact_id")
             ],
+            citation_sources={
+                str(r["artifact_id"]): str(r["source_id"])
+                for r in receipts
+                if r.get("artifact_id") and r.get("source_id")
+            },
             snapshot_verification=_verify_snapshot(session, snapshot_id),
             reconcile=dict(session.state.get("reconcile") or {}),
             receipt_rate=(accepted, submitted),
@@ -1103,6 +1111,7 @@ def cmd_report(args: argparse.Namespace) -> int:
         write_regressions,
         write_summary,
     )
+    from .reports.context import RunContext
     from .tracing.lineage import LineageIndex
 
     session = resume_session(args, connect=False)
@@ -1130,6 +1139,7 @@ def cmd_report(args: argparse.Namespace) -> int:
         )
         submitted = len(receipts) or 1
 
+        context = RunContext.load(paths)
         vector = health_vector(
             result,
             run_status=str(session.state.get("run_status") or "complete"),
@@ -1138,6 +1148,7 @@ def cmd_report(args: argparse.Namespace) -> int:
             ),
             receipt_rate=accepted / submitted,
             cost_usd=float(budget.get("committed_usd") or 0.0),
+            tuning_applied=context.tuning_applied,
         )
 
         write_summary(
@@ -1147,13 +1158,18 @@ def cmd_report(args: argparse.Namespace) -> int:
             vector=vector,
             collection=collection,
             limitations=_provider_limitations(session.config),
+            context=context,
         )
-        write_arm_comparison(paths, result)
+        write_arm_comparison(paths, result, context)
         write_collection_report(paths, collection)
         write_query_detail(
-            paths, result.per_query, questions=questions, lineage=LineageIndex(paths)
+            paths,
+            result.per_query,
+            questions=questions,
+            lineage=LineageIndex(paths),
+            context=context,
         )
-        write_regressions(paths, result, questions=questions)
+        write_regressions(paths, result, questions=questions, context=context)
         write_errors_report(
             paths,
             errors,

@@ -102,8 +102,13 @@ class EvaluationEngine:
         receipt_rate: tuple[int, int] = (0, 0),
         limitations: Sequence[str] = (),
         recorded_answers: Sequence[Mapping[str, Any]] = (),
+        citation_sources: Mapping[str, str] | None = None,
     ) -> None:
         self.config = config
+        #: Region artifact id -> lab source id, from the ingest receipts: how
+        #: a citation is recognised as naming a source (see
+        #: `answer_metrics.compute`).
+        self.citation_sources = dict(citation_sources or {})
         self.run_id = run_id
         self.paths = paths
         self.tracer = tracer
@@ -401,6 +406,7 @@ class EvaluationEngine:
                         self.config.metrics.answer_matching,
                         run_id=self.run_id,
                         cohort=cohort,
+                        citation_sources=self.citation_sources,
                     )
                 )
                 for result in results:

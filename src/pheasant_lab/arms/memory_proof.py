@@ -40,7 +40,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import Any
 
-from ..textkit import containment, content_terms, sentences, tokens, truncate
+from ..textkit import containment, content_terms, document_body, prose, tokens, truncate
 
 #: The shape of the text a proof record carries, recorded with it in the
 #: lab's trace so a reader of an old run knows which layout it is looking at.
@@ -62,7 +62,6 @@ MIN_CLAIM_CHARS = 20
 
 _FRONT_MATTER = re.compile(r"\A\s*---\r?\n.*?\r?\n---[ \t]*(?:\r?\n|\Z)", re.S)
 #: A front-matter block that a preview cut off before its closing fence.
-_FRONT_MATTER_OPEN = re.compile(r"\A\s*---\r?\n(?:[A-Za-z_][\w-]*:[^\n]*(?:\n|\Z))+", re.S)
 _HEADING_MARK = re.compile(r"^\s{0,3}#{1,6}\s+", re.M)
 _FIELD_LINE = re.compile(r"^\s*([A-Za-z_][\w-]*)\s*:\s*(.*)$")
 #: An opaque id: a run of hex long enough to be a digest, or a token that is
@@ -341,11 +340,7 @@ def _excerpt(passage: str, claim_text: str) -> str:
 
     wanted = set(tokens(claim_text))
     best, best_score = "", 0.0
-    # Line by line before sentence by sentence: a heading has no full stop,
-    # and joined to the paragraph under it would read as one run-on sentence.
-    lines = _FRONT_MATTER.sub("", passage or "", count=1).splitlines()
-    units = [s for line in lines if line.strip() for s in sentences(readable(line))]
-    for sentence in units:
+    for sentence in prose(passage):
         score = containment(wanted, tokens(sentence)) if wanted else 0.0
         if score > best_score:
             best, best_score = sentence, score
@@ -356,18 +351,14 @@ def _excerpt(passage: str, claim_text: str) -> str:
 
 
 def readable(text: str) -> str:
-    """``text`` without the front matter or heading marks a document opens with.
+    """``text`` as prose on one line: no front matter, no heading marks.
 
     This lab's documents start with a YAML block, and a passage or a claim
     copied from one carries it - which is how a memory record ended up
-    reading ``lab_source_id: source-…``. A block a preview truncated before
-    its closing fence is stripped too.
+    reading ``lab_source_id: source-…``.
     """
 
-    body = _FRONT_MATTER.sub("", text or "", count=1)
-    if body == (text or ""):
-        body = _FRONT_MATTER_OPEN.sub("", body, count=1)
-    body = _HEADING_MARK.sub("", body)
+    body = _HEADING_MARK.sub("", document_body(text or ""))
     return " ".join(body.split())
 
 

@@ -9,7 +9,10 @@ records which spelling was used.
 
 from __future__ import annotations
 
+import re
+import threading
 import time
+import unicodedata
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import Any
@@ -91,10 +94,18 @@ class IngestRequest:
         return ids.ingest_request_id(self.source_id, self.content_digest)
 
     def path(self) -> str:
+        """Where the document lands in the region: ``<topic>/<readable name>.md``.
+
+        :meth:`Ingestor.submit` assigns ``relative_path`` before anything is
+        sent, so a name already used by an earlier submission of the same
+        source - in this process or the one a resume replaced - is kept, and
+        two sources whose readable names collide are told apart. This default
+        is the name a request has before that assignment.
+        """
+
         if self.relative_path:
             return self.relative_path
-        slug = (self.source.stable_identifier or self.source_id).replace("/", "_").replace(":", "_")
-        return f"{self.topic_id}/{slug}.md"
+        return f"{self.topic_id}/{document_name(self.source, self.source_id)}.md"
 
     def as_document(self, argument_map: Mapping[str, str]) -> dict[str, Any]:
         return {
@@ -167,6 +178,43 @@ class Ingestor:
         self.landing_directory: str | None = None
         self._registered = False
         self._clock = time
+        #: Which source owns which region path. A resubmission keeps its
+        #: source's first path - a second path would be a second document in
+        #: the region holding the same text - and a path is never handed to a
+        #: second source, whose bytes would replace the first's.
+        self._path_owner: dict[str, str] = {}
+        self._source_path: dict[str, str] = {}
+        self._paths_lock = threading.Lock()
+
+    def restore_paths(self, request_rows: Iterable[Mapping[str, Any]]) -> None:
+        """Take over the paths a previous process of this run submitted under."""
+
+        with self._paths_lock:
+            for row in request_rows:
+                source_id, path = (
+                    str(row.get("source_id") or ""),
+                    str(row.get("relative_path") or ""),
+                )
+                if source_id and path and source_id not in self._source_path:
+                    self._source_path[source_id] = path
+                    self._path_owner.setdefault(path, source_id)
+
+    def assign_path(self, request: IngestRequest) -> str:
+        """Fix ``request``'s region path: its source's earlier one, or a free one."""
+
+        with self._paths_lock:
+            known = self._source_path.get(request.source_id)
+            if known is None:
+                wanted = request.path()
+                stem, dot, extension = wanted.rpartition(".")
+                known, counter = wanted, 1
+                while self._path_owner.get(known, request.source_id) != request.source_id:
+                    counter += 1
+                    known = f"{stem}-{counter}{dot}{extension}" if dot else f"{wanted}-{counter}"
+                self._source_path[request.source_id] = known
+                self._path_owner[known] = request.source_id
+            request.relative_path = known
+            return known
 
     # -- submission --------------------------------------------------------
     def submit(
@@ -180,6 +228,8 @@ class Ingestor:
         """
 
         tool = self.capabilities.tool("ingest")
+        for request in requests:
+            self.assign_path(request)
         receipts: list[IngestReceipt] = []
         for start in range(0, len(requests), batch_size):
             chunk = list(requests[start : start + batch_size])
@@ -603,6 +653,55 @@ def sync_disposition(payload: Mapping[str, Any]) -> str:
 
 def _as_mapping(payload: Any) -> dict[str, Any]:
     return dict(payload) if isinstance(payload, Mapping) else {"raw": payload}
+
+
+#: A file name is read in a directory listing, a search hit and a memory
+#: link; past this it stops being read at all.
+NAME_CHARS = 96
+
+
+def document_name(source: IngestSource, source_id: str) -> str:
+    """A file name a person can read: the title, then first author and year.
+
+    ``dsup-a-nucleosome-binding-protein-from-ramazzottius-varieornatus-tanaka-2016``
+    rather than ``10.5555_synthetic.dsup.2016.001``. The name is more than a
+    label in pheasant: its file name is the title a search hit shows, the
+    heaviest-weighted column of its BM25 index, and what a memory record
+    links to. So it is a slug - lowercase ASCII words joined by hyphens - and
+    never carries a comma, a colon, a space or a parenthesis: a preference
+    rule splits on commas, and a Markdown link ends at the first ``)``.
+
+    A source with no title falls back to its identifier, the old name, so
+    nothing is ever named after nothing.
+    """
+
+    title = _slug(source.title, limit=NAME_CHARS)
+    author = _slug(_surname(source.authors[0]) if source.authors else "", limit=24)
+    year = (source.published_at or "")[:4]
+    tail = "-".join(part for part in (author, year if year.isdigit() else "") if part)
+    if title:
+        return f"{title}-{tail}" if tail else title
+    fallback = (source.stable_identifier or source_id).replace("/", "_").replace(":", "_")
+    return fallback
+
+
+def _surname(author: str) -> str:
+    author = str(author or "").strip()
+    if "," in author:  # "Chen, Wei"
+        return author.split(",", 1)[0]
+    return author.split()[-1] if author.split() else ""
+
+
+def _slug(text: str, *, limit: int) -> str:
+    folded = unicodedata.normalize("NFKD", str(text or "")).encode("ascii", "ignore").decode()
+    words = re.findall(r"[a-z0-9]+", folded.lower())
+    out = ""
+    for word in words:
+        candidate = f"{out}-{word}" if out else word
+        if len(candidate) > limit:
+            break
+        out = candidate
+    return out or (words[0][:limit] if words else "")
 
 
 def build_requests(

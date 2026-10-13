@@ -29,6 +29,7 @@ from ..textkit import (
     DISAGREEMENT_MARKERS,
     containment,
     content_terms,
+    prose,
     salient_terms,
     sentences,
     tokens,
@@ -270,8 +271,16 @@ class ReplayProvider(ModelProvider):
 
         scored: list[tuple[float, str, Mapping[str, Any]]] = []
         for passage in passages:
-            body = str(passage.get("text") or "")
-            for sentence in sentences(body):
+            # The document's prose, not its front matter: a passage read back
+            # whole opens with a metadata block, and an extractive answerer
+            # that quotes it answers with `lab_source_id: …`. The specialist's
+            # package has no such block, so reading it here would handicap
+            # exactly the arms the comparison is about.
+            for sentence in prose(str(passage.get("text") or "")):
+                if sentence.rstrip().endswith("?"):
+                    # A question asserts nothing; an extractive answer that
+                    # quotes one back has answered with the question.
+                    continue
                 sentence_tokens = set(tokens(sentence))
                 hits = terms & sentence_tokens
                 if len(hits) < MIN_TERM_HITS:
@@ -355,9 +364,8 @@ class ReplayProvider(ModelProvider):
             return {"queries": [" ".join(base[:8]) or question]}
         vocabulary: list[str] = []
         for result in seen[:5]:
-            vocabulary.extend(
-                salient_terms(str(result.get("text") or result.get("title") or ""), limit=4)
-            )
+            text = " ".join(prose(str(result.get("text") or ""))) or str(result.get("title") or "")
+            vocabulary.extend(salient_terms(text, limit=4))
         fresh = [term for term in dict.fromkeys(vocabulary) if term not in base][:4]
         if not fresh:
             return {"queries": []}
