@@ -174,6 +174,13 @@ class LineageIndex:
                         },
                     )
                 )
+                if result.get("memory_ids"):
+                    # A memory hit is a record P1 was seeded with, not one of
+                    # this lab's sources: it ends at the record, and having no
+                    # source id is what it is rather than a broken link.
+                    for record_id in result["memory_ids"]:
+                        chain.nodes.append(LineageNode("memory_record", str(record_id), {}))
+                    continue
                 self._extend_to_source(chain, result.get("source_id"))
         chain.nodes.append(LineageNode("answer", answer_id, {"abstained": answer.get("abstained")}))
         for index, claim in enumerate(answer.get("claims", [])):

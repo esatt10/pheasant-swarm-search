@@ -1186,8 +1186,12 @@ class MockPheasantServer:
                 continue
             if not record.current or record.kind not in {"alias", "preference", "exclusion"}:
                 continue
-            if record.kind == "alias" and "->" in record.text:
-                left, _, right = record.text.partition("->")
+            # pheasant reads an alias from the record's first line only; the
+            # lines after it are prose, and expanding a query with them would
+            # be a rule the region never applies.
+            rule = record.text.strip().partition("\n")[0]
+            if record.kind == "alias" and "->" in rule:
+                left, _, right = rule.partition("->")
                 terms[left.strip().lower()] = right.strip()
             elif record.kind == "preference":
                 # Pheasant's grammar, and only pheasant's: a record it cannot

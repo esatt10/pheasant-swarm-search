@@ -15,6 +15,8 @@ from typing import Any
 from ..evaluation.engine import EvaluationResult
 from ..evaluation.pairing import pair_arms
 from ..lifecycle import RunPaths
+from ..textkit import truncate
+from .context import RunContext, arm, listing
 
 
 def write_regressions(
@@ -24,11 +26,14 @@ def write_regressions(
     questions: Mapping[str, Mapping[str, Any]],
     metric: str = "fact_f1",
     limit: int = 20,
+    context: RunContext | None = None,
 ) -> Path:
+    context = context or RunContext(questions={k: dict(v) for k, v in questions.items()})
     lines = ["# Worst regressions", ""]
     lines.append(
-        f"Per-question deltas on `{metric}`, worst first. A question both arms fail is not a "
-        "regression and is not listed here."
+        f"The questions that got worse on `{metric}`, worst first, with what each arm said and "
+        "the most likely reason from the trace. A question both arms fail is not a regression "
+        "and is not listed here."
     )
     lines.append("")
 
@@ -44,38 +49,80 @@ def write_regressions(
             continue
         worst = sorted(pairing.samples, key=lambda sample: sample.delta)[:limit]
         worst = [sample for sample in worst if sample.delta < 0]
-        lines.append(f"## `{treatment}` − `{baseline}`")
+        lines.append(f"## {arm(treatment)} vs {arm(baseline)}")
         lines.append("")
         if not worst:
             lines.append("_no question regressed on this comparison_")
             lines.append("")
             continue
-        lines.append("| question | cohort | type | baseline | treatment | Δ |")
+        lines.append(f"| question | cohort | type | {baseline} | {treatment} | Δ |")
         lines.append("|---|---|---|---:|---:|---:|")
         for sample in worst:
             lines.append(
-                f"| `{sample.question_id}` | {sample.cohort} | {sample.question_type} | "
-                f"{sample.baseline:.4g} | {sample.treatment:.4g} | {sample.delta:+.4g} |"
+                f"| {context.question_text(sample.question_id, 90)} | {sample.cohort} | "
+                f"{str(sample.question_type).replace('_', ' ')} | {sample.baseline:.4g} | "
+                f"{sample.treatment:.4g} | {sample.delta:+.4g} |"
             )
         lines.append("")
-        lines.append("**Likely causes, from the trace:**")
         for sample in worst[:5]:
-            lines.append(
-                f"- `{sample.question_id}`: {_diagnose(result, sample.question_id, treatment, baseline)}"
-            )
-        lines.append("")
+            lines.extend(_case(result, context, sample.question_id, treatment, baseline))
     return _write(paths.reports / "worst-regressions.md", lines)
 
 
-def _diagnose(result: EvaluationResult, question_id: str, treatment: str, baseline: str) -> str:
-    """A trace-backed guess at *why*, stated as a guess."""
+def _case(
+    result: EvaluationResult,
+    context: RunContext,
+    question_id: str,
+    treatment: str,
+    baseline: str,
+) -> list[str]:
+    lines = [f"### {context.question_text(question_id)}", "", f"`{question_id}`", ""]
+    if context.is_abstention(question_id):
+        lines.append("- **expected:** abstain — the corpus does not answer this")
+    for fact in context.required_facts(question_id):
+        lines.append(f"- **expected:** {fact.get('text')}")
+    for arm_id in (baseline, treatment):
+        answer = context.answer(arm_id, question_id)
+        outcome = context.outcome(answer)
+        said = ""
+        if answer and answer.get("answer_text") and not answer.get("abstained"):
+            said = f": {truncate(' '.join(str(answer['answer_text']).split()), 300)}"
+        cited = listing([context.document(c) for c in context.cited(answer)], limit=4)
+        lines.append(f"- **{arm_id}** {outcome}{said}" + (f" — cited {cited}" if cited else ""))
+    lines.append(
+        f"- **likely cause:** {_diagnose(result, question_id, treatment, baseline, context)}"
+    )
+    lines.append("")
+    return lines
 
-    def value(metric: str, arm: str) -> float | None:
+
+def _diagnose(
+    result: EvaluationResult,
+    question_id: str,
+    treatment: str,
+    baseline: str,
+    context: RunContext | None = None,
+) -> str:
+    """A trace-backed guess at *why*, stated as a guess.
+
+    The answers themselves come first - did the treatment fail, abstain, or
+    answer what it should have declined; did its searches reach a document
+    holding the expected fact, and did it then use it. Those read straight off
+    the trace for any pair of arms, including against the specialist, which
+    has no retrieval metrics. The metric comparison is the fallback.
+    """
+
+    if context is not None:
+        reason = _from_answers(context, question_id, treatment, baseline)
+        if reason:
+            return reason
+
+    def value(metric: str, arm_id: str) -> float | None:
         rows = [
             row
             for row in result.per_query
             if row.get("question_id") == question_id
-            and row.get("arm_id") == arm
+            and row.get("arm_id") == arm_id
             and row.get("metric") == metric
         ]
         values = [float(row["value"]) for row in rows if row.get("value") is not None]
@@ -101,6 +148,64 @@ def _diagnose(result: EvaluationResult, question_id: str, treatment: str, baseli
     if support_t is not None and support_b is not None and support_t < support_b:
         return "retrieval was comparable but less of the answer rested on what was retrieved"
     return "no single stage explains this from the trace; the per-question detail has the operands"
+
+
+def _from_answers(
+    context: RunContext, question_id: str, treatment: str, baseline: str
+) -> str | None:
+    answer = context.answer(treatment, question_id)
+    other = context.answer(baseline, question_id)
+    if answer is None:
+        return None
+    if answer.get("status") == "failed":
+        return f"{treatment}'s answer failed: {answer.get('error') or 'no error recorded'}"
+    if context.is_abstention(question_id):
+        if not answer.get("abstained"):
+            cited = listing([context.document(c) for c in context.cited(answer)]) or "nothing"
+            return (
+                f"{treatment} answered a question the corpus cannot answer, where it should have "
+                f"abstained (it cited {cited})"
+            )
+        return None
+    if answer.get("abstained") and other is not None and not other.get("abstained"):
+        reason = answer.get("abstention_reason")
+        return f"{treatment} abstained where {baseline} answered" + (
+            f" ({reason})" if reason else ""
+        )
+    expected = context.expected_documents(question_id)
+    if not expected or not answer.get("search_calls"):
+        return None
+    retrieved = context.retrieved(answer)
+    found = [
+        (key, rank, query)
+        for key, rank, query in retrieved
+        if any(context.same_document(key, e) for e in expected)
+    ]
+    titles = "; ".join(context.document(e) for e in _distinct(context, expected)[:2])
+    if not found:
+        return (
+            f"{treatment}'s searches never returned a document holding the expected fact "
+            f"({titles}) - a retrieval miss, not an answering one"
+        )
+    cited = context.cited(answer)
+    if not any(context.same_document(c, key) for c in cited for key, _, _ in found):
+        key, rank, query = found[0]
+        return (
+            f'{treatment} retrieved {context.document(key)} (rank {rank} for "{query}") but its '
+            "answer did not use it - an answering cause, not a retrieval one"
+        )
+    return (
+        f"{treatment} retrieved and cited the right document, but its answer did not state the "
+        "expected fact in matchable words"
+    )
+
+
+def _distinct(context: RunContext, ids: Sequence[str]) -> list[str]:
+    out: list[str] = []
+    for key in ids:
+        if not any(context.same_document(key, seen) for seen in out):
+            out.append(key)
+    return out
 
 
 def write_errors_report(

@@ -209,6 +209,11 @@ class ReplaySection(_Model):
     #: is set *and* the pheasant file maps ``min_score``. Fused scores have no
     #: absolute scale, so this is a blunt instrument; unset sends nothing.
     min_score: float | None = None
+    #: ``k`` for ``P1``'s memory: how many distinct retrieved passages must
+    #: validate a learned answer before it is written to the region as a
+    #: retrieval proof (and before any steering rule is learned from it).
+    #: Unset means 1 and is left out of the config digest.
+    memory_min_evidence: int | None = Field(default=None, ge=1, le=10)
 
     @property
     def wire_search_mode(self) -> str:
@@ -783,7 +788,7 @@ class LabConfig(_Model):
         # started before either existed still resumes without `--fork`.
         replay = payload.get("replay")
         if isinstance(replay, dict):
-            for added in ("search_mode", "min_score"):
+            for added in ("search_mode", "min_score", "memory_min_evidence"):
                 if replay.get(added) is None:
                     replay.pop(added, None)
         if isinstance(replay, dict) and replay.get("graph_expansion") is None:

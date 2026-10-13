@@ -83,7 +83,20 @@ def compute(
     *,
     run_id: str,
     cohort: str | None = None,
+    citation_sources: Mapping[str, str] | None = None,
 ) -> list[MetricResult]:
+    """Every answer metric for one answer.
+
+    ``citation_sources`` maps a cited id (the region's artifact id) to the
+    lab source it is. It is used for one thing: deciding whether an answer
+    *named* a source, which a ``source`` matcher checks against the source's
+    DOI, title and lab id. Without it a correct citation counted only when
+    the region's id happened to spell one of those - an id embedding
+    ``10.5555_x`` never matches the DOI ``10.5555/x`` - so the same citation
+    scored differently depending on how a file was named. Validity and
+    support still read the citations exactly as given.
+    """
+
     scope = MetricScope(
         run_id=run_id,
         arm_id=str(answer.get("arm_id")),
@@ -97,6 +110,7 @@ def compute(
     claims = eligible_claims(answer)
     passages = retrieved_passages(answer)
     citations = [c for claim in claims for c in (claim.get("citations") or [])]
+    named = _naming(citations, citation_sources)
     eligible_facts = [fact for fact in facts if fact.eligible]
     ineligible = len(facts) - len(eligible_facts)
 
@@ -121,7 +135,7 @@ def compute(
             if fact.matcher.matches(
                 text,
                 abstained=abstained,
-                citations=citations,
+                citations=named,
                 tolerance=matching.numeric_relative_tolerance,
             )
         ]
@@ -155,7 +169,7 @@ def compute(
             if fact.matcher.matches(
                 text,
                 abstained=abstained,
-                citations=citations,
+                citations=named,
                 tolerance=matching.numeric_relative_tolerance,
             )
         ]
@@ -188,7 +202,7 @@ def compute(
                 fact.matcher.matches(
                     claim_text,
                     abstained=False,
-                    citations=cited,
+                    citations=_naming(cited, citation_sources),
                     tolerance=matching.numeric_relative_tolerance,
                 )
                 for fact in eligible_facts
@@ -324,7 +338,7 @@ def compute(
     )
 
     # -- type-specific -----------------------------------------------------
-    out.extend(_type_specific(question, facts, answer, matching, scope, text, abstained, citations))
+    out.extend(_type_specific(question, facts, answer, matching, scope, text, abstained, named))
     return out
 
 
@@ -445,6 +459,17 @@ def _type_specific(
     return out
 
 
+def _naming(citations: Sequence[str], citation_sources: Mapping[str, str] | None) -> list[str]:
+    """The citations, plus the lab source each one is, for name matching only."""
+
+    out = [str(c) for c in citations]
+    for citation in citations:
+        source = (citation_sources or {}).get(str(citation))
+        if source and source not in out:
+            out.append(source)
+    return out
+
+
 def _supported(
     claim_text: str,
     citations: Sequence[str],
@@ -453,13 +478,32 @@ def _supported(
 ) -> bool:
     if matching.require_citation_for_support and not citations:
         return False
+    return bool(supporting_citations(claim_text, citations, passages, matching))
+
+
+def supporting_citations(
+    claim_text: str,
+    citations: Sequence[str],
+    passages: Mapping[str, str],
+    matching: AnswerMatchingSection,
+) -> list[str]:
+    """The citations whose passage carries this claim, in citation order.
+
+    The one rule for "a passage this session read supports this claim", used
+    by ``evidence_support_rate`` and by the memory seeder, which writes a
+    claim down as proven only when this returns something. Two callers, one
+    rule: a memory that called a claim validated by a looser test than the
+    metric would be a proof the report does not stand behind.
+    """
+
     claim_tokens = tokens(claim_text)
     if not claim_tokens:
-        return False
+        return []
+    out: list[str] = []
     for citation in citations:
         passage = passages.get(str(citation))
-        if passage is None:
+        if passage is None or str(citation) in out:
             continue
         if containment(claim_tokens, tokens(passage)) >= matching.support_overlap_threshold:
-            return True
-    return False
+            out.append(str(citation))
+    return out

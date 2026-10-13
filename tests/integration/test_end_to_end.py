@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import csv
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -313,3 +314,25 @@ def test_costs_were_reserved_and_reconciled(run: Path):
         assert payload["reconciled"] is True
         assert payload["actual_usd"] is not None
         assert payload["reserved_usd"] >= 0
+
+
+def test_the_reports_name_things_rather_than_print_ids(run: Path):
+    """A person reads these: documents by title, questions in words, no metadata."""
+
+    for report in sorted((run / "reports").glob("*.md")):
+        text = report.read_text()
+        assert "file:swarm-lab-literature:" not in text, f"{report.name} prints a region id"
+        assert "lab_source_id" not in text, f"{report.name} quotes document front matter"
+    detail = (run / "reports/query-detail.md").read_text()
+    questions = list(read_jsonl(run / "benchmark/questions.jsonl"))
+    assert all(q["text"].split("?")[0][:40] in detail for q in questions)
+    assert "**What each arm answered**" in detail
+
+
+def test_submitted_documents_are_named_by_title(run: Path):
+    sources = {row["source_id"]: row for row in read_jsonl(run / "raw/sources.jsonl")}
+    for request in read_jsonl(run / "raw/ingest-requests.jsonl"):
+        title = sources[request["source_id"]]["title"]
+        first_word = re.findall(r"[a-z0-9]+", title.lower())[0]
+        name = request["relative_path"].rsplit("/", 1)[-1]
+        assert name.startswith(first_word), f"{name} is not named after {title!r}"

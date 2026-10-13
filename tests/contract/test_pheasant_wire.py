@@ -338,24 +338,27 @@ def test_seeded_preferences_parse_under_pheasants_rule_grammar(config):
     from pheasant_lab.arms.pheasant_memory import MemorySeeder
 
     seeder = MemorySeeder(None, None, config.pheasant)
+    artifact = "file:src:topic/a.md:branch=none"
+    passage = "Dsup binds nucleosomes and shields chromatin from hydroxyl radicals."
     entry = {
+        "question_id": "q-1",
         "question_text": "How does Dsup protect chromatin from radiation?",
-        "answer_text": "",
+        "answer_text": passage,
+        "claims": [{"text": passage, "citations": [artifact]}],
+        "read_passages": [{"artifact_id": artifact, "text": passage}],
         "queries_used": ["dsup"],
-        "retrieved_artifact_ids": ["file:src:topic/a.md:branch=none"],
+        "retrieved_artifact_ids": [artifact],
         "search_calls": [
-            {
-                "results": [
-                    {"artifact_id": "file:src:topic/a.md:branch=none", "locator": "topic/a.md"}
-                ]
-            }
+            {"query": "dsup", "round": 1, "results": [{"artifact_id": artifact, "rank": 1}]}
         ],
     }
     preferences = [c for c in seeder._candidates(entry) if c["kind"] == "preference"]
     assert len(preferences) == 1
-    match = PHEASANT_PREFERENCE.search(preferences[0]["text"])
-    assert match, f"pheasant would ignore {preferences[0]['text']!r}"
-    assert match.group("prefer").strip() == "topic/a.md"
+    text = preferences[0]["text"]
+    matches = list(PHEASANT_PREFERENCE.finditer(text))
+    assert matches, f"pheasant would ignore {text!r}"
+    assert len(matches) == 1, "the explanation must not parse as a second rule"
+    assert matches[0].group("prefer").strip() == "topic/a.md"
 
 
 # -- the index barrier, through the faithful mock ---------------------------

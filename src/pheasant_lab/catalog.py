@@ -586,6 +586,16 @@ DOCS: dict[str, Doc] = {
         label="minimum score",
         advanced=True,
     ),
+    "replay.memory_min_evidence": Doc(
+        "How many distinct retrieved passages must validate a learned answer before P1's memory "
+        "records it as a retrieval proof. An answer with fewer writes no memory at all, and no "
+        "steering rule is learned from it.",
+        "Empty (= 1) or 1-10. Higher keeps only well-corroborated answers; P1 then has less memory "
+        "to be measured with.",
+        minimum=1,
+        maximum=10,
+        label="memory evidence (k)",
+    ),
     # -- privacy --------------------------------------------------------------
     "privacy.store_prompt_text": Doc(
         "Keep prompt text in the trace (digests are always kept).", "true / false."
