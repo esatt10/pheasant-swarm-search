@@ -20,8 +20,10 @@ from ..pheasant.capabilities import CapabilityMap
 from ..pheasant.client import PheasantClient
 from ..pheasant.ingestion import read_index_queue
 from ..pheasant.retrieval import MemoryOptions
-from ..settings import PheasantFile
-from ..textkit import content_terms, truncate
+from ..settings import AnswerMatchingSection, PheasantFile
+from ..textkit import content_terms, tokens
+from . import memory_proof
+from .memory_proof import Proof
 from .pheasant_corpus import PheasantCorpusArm
 
 
@@ -48,6 +50,15 @@ MEMORY_SOURCE = "agent-memory"
 class MemorySeeder:
     """Writes the memory ``P1`` is measured with.
 
+    Each learned question yields at most one **retrieval proof** - the
+    question, the claims its answer made that the session's own retrieval
+    validates, and the passages that validate them, quoted and linked (see
+    :mod:`.memory_proof`) - plus the steering rules that proof supports. A
+    question whose answer is validated by fewer than ``min_evidence`` distinct
+    passages writes nothing at all, and the trace says why: an unproven answer
+    is not something to remember, and a rule learned from one has no evidence
+    behind it either.
+
     Every record names the question that produced it. That field is what the
     leakage checker reads to prove no holdout or control question created the
     treatment it is being tested against - so it is written even though
@@ -69,8 +80,19 @@ class MemorySeeder:
         tracer: Any = None,
         principal: str = "pheasant-swarm-lab",
         clock: Any = time,
+        matching: AnswerMatchingSection | None = None,
+        min_evidence: int = 1,
     ) -> None:
+        if min_evidence < 1:
+            raise ValueError("a memory needs at least one validated passage behind it")
         self.client = client
+        #: The support rule `evidence_support_rate` scores with; a proof is
+        #: held to the same one.
+        self.matching = matching or AnswerMatchingSection()
+        #: ``k``: distinct validated passages an answer needs to be remembered.
+        self.min_evidence = min_evidence
+        #: Why each learned question wrote nothing, keyed by question id.
+        self.skipped: dict[str, str] = {}
         self.capabilities = capabilities
         self.config = config
         self.tracer = tracer
@@ -110,19 +132,37 @@ class MemorySeeder:
         forbidden = set(forbidden_question_ids)
         records: list[dict[str, Any]] = []
 
+        proven = 0
         for entry in first_pass:
             question_id = str(entry.get("question_id") or "")
             if question_id not in learned or question_id in forbidden:
                 continue
-            for record in self._candidates(entry):
+            candidates = self._candidates(entry)
+            if not candidates:
+                continue
+            proven += 1
+            for record in candidates:
                 written = self._write(record, question_id)
                 if written is not None:
                     records.append(written)
         self.written.extend(records)
         if self.tracer is not None:
+            reasons: dict[str, int] = {}
+            for reason in self.skipped.values():
+                reasons[reason] = reasons.get(reason, 0) + 1
             self.tracer.emit(
                 "memory.seeded",
-                payload={"records": len(records), "learned_questions": len(learned)},
+                payload={
+                    "records": len(records),
+                    "learned_questions": len(learned),
+                    "proven_questions": proven,
+                    "min_evidence": self.min_evidence,
+                    "kinds": {
+                        kind: sum(1 for r in records if r["kind"] == kind)
+                        for kind in ("fact", "alias", "preference")
+                    },
+                    "skipped": reasons,
+                },
             )
         if self.queued_tasks:
             self.index_outcome = self.wait_until_indexed()
@@ -206,55 +246,118 @@ class MemorySeeder:
         )
 
     def _candidates(self, entry: Mapping[str, Any]) -> list[dict[str, Any]]:
-        """Three rule shapes, each derived from the arm's own trace."""
+        """A proof, and the rules it supports - or nothing, with the reason.
 
-        out: list[dict[str, Any]] = []
-        queries = [str(q) for q in entry.get("queries_used") or []]
-        artifacts = [str(a) for a in entry.get("retrieved_artifact_ids") or []]
-        question = str(entry.get("question_text") or "")
+        All three shapes come from the arm's own trace and nothing else, and
+        all three need the proof: a rule learned from an answer nobody could
+        validate is a rule with no evidence behind it.
+        """
 
-        # 1. A fact record: what this session actually established, in words.
-        if entry.get("answer_text") and not entry.get("abstained"):
-            out.append(
-                {
-                    "kind": "fact",
-                    "scope": "org",
-                    "subject": _subject(question),
-                    "text": truncate(str(entry["answer_text"]), 600),
-                }
+        question_id = str(entry.get("question_id") or "")
+        if entry.get("abstained"):
+            self.skipped[question_id] = "the arm abstained"
+            return []
+        if not entry.get("claims"):
+            self.skipped[question_id] = "the answer made no claim"
+            return []
+        if not any(p.get("text") for p in entry.get("read_passages") or []) and not any(
+            r.get("matched_text")
+            for c in entry.get("search_calls") or []
+            for r in c.get("results") or []
+        ):
+            # Nothing to validate against. Said as itself, so a run with
+            # `privacy.store_response_text: false` is not read as one whose
+            # answers were all unsupported.
+            self.skipped[question_id] = "the passage text was not kept, so nothing can be validated"
+            return []
+        proof = memory_proof.build_proof(
+            entry,
+            self.matching,
+            max_evidence=max(memory_proof.DEFAULT_MAX_EVIDENCE, self.min_evidence),
+        )
+        if proof.validated < self.min_evidence:
+            self.skipped[question_id] = (
+                f"fewer than {self.min_evidence} retrieved passage(s) validate the answer"
+                if proof.claims
+                else "no claim is validated by a passage the session read"
             )
-        # 2. An alias: a query term that retrieved nothing, mapped to one that
-        #    did. This is the shape a region's own formation rules propose,
-        #    and the one most likely to be a false positive, so it is only
-        #    emitted when the two rounds actually differed.
-        if len(queries) >= 2 and artifacts:
-            first, later = content_terms(queries[0]), content_terms(queries[-1])
-            fresh = [term for term in later if term not in first]
-            if fresh and first:
+            return []
+
+        subject = memory_proof.subject(proof.question_text)
+        out: list[dict[str, Any]] = [
+            {
+                "kind": "fact",
+                "scope": "org",
+                "subject": subject,
+                "text": memory_proof.render_proof(proof, principal=self.principal),
+                "tags": ["retrieval-proof"],
+                "proof": proof,
+            }
+        ]
+
+        # An alias: a word the refined search added, mapped from one the first
+        # search used - only when the refined search found validating evidence
+        # and the added word is in it. Otherwise the alias is a guess about
+        # vocabulary that the session never showed to matter.
+        queries = proof.queries
+        refined = [item for item in proof.evidence if (item.query_round or 1) > 1]
+        if len(queries) >= 2 and refined:
+            first = [t for t in content_terms(queries[0]) if memory_proof.is_readable_term(t)]
+            # The word the refinement replaced, when it replaced one: that is
+            # the vocabulary shift the session made. A refinement that only
+            # added words falls back to the first search's leading term.
+            dropped = [t for t in first if t not in set(content_terms(queries[-1]))]
+            first = dropped + [t for t in first if t not in dropped]
+            read = entry_documents(entry)
+            evidence_words = {
+                token
+                for item in refined
+                for token in tokens(memory_proof.readable(read.get(item.artifact_id, "")))
+            }
+            later = [
+                t for t in content_terms(queries[-1]) if t not in set(content_terms(queries[0]))
+            ]
+            fresh = [t for t in later if memory_proof.is_readable_term(t) and t in evidence_words]
+            if first and fresh:
                 out.append(
                     {
                         "kind": "alias",
                         "scope": "org",
-                        "subject": _subject(question),
-                        "text": f"{first[0]} -> {fresh[0]}",
+                        "subject": subject,
+                        "text": memory_proof.render_alias(
+                            first[0],
+                            fresh[0],
+                            proof,
+                            first_query=queries[0],
+                            refined_query=queries[-1],
+                            found=len(refined),
+                        ),
+                        "tags": ["learned-rule"],
+                        "proof": proof,
                     }
                 )
-        # 3. A preference: the source the session found useful, in the
-        #    region's own rule grammar (`when: <terms> -> prefer: <path>`). A
-        #    record the region cannot parse is ignored there without a word,
-        #    so a free-text preference would be a P1 treatment that never
-        #    took effect while the run reported it as seeded.
-        triggers = content_terms(question)[:3]
-        path = _locator(entry, artifacts[0]) if artifacts else None
-        if triggers and path:
-            out.append(
-                {
-                    "kind": "preference",
-                    "scope": "org",
-                    "subject": _subject(question),
-                    "text": f"when: {', '.join(triggers)} -> prefer: {path}",
-                }
+
+        # A preference, in the region's own rule grammar (`when: <terms> ->
+        # prefer: <path>`), for the document that validates the most of the
+        # answer. A record the region cannot parse is ignored there without a
+        # word, so the path must survive pheasant's comma split intact.
+        documents = entry_documents(entry)
+        best = max(proof.evidence, key=lambda item: (len(item.claims), -item.number), default=None)
+        if best is not None and best.relative_path and not set(",;\n") & set(best.relative_path):
+            triggers = memory_proof.trigger_terms(
+                proof.question_text, documents.get(best.artifact_id, "")
             )
+            if triggers:
+                out.append(
+                    {
+                        "kind": "preference",
+                        "scope": "org",
+                        "subject": subject,
+                        "text": memory_proof.render_preference(triggers, best, proof),
+                        "tags": ["learned-rule"],
+                        "proof": proof,
+                    }
+                )
         return out
 
     def _write(self, record: Mapping[str, Any], question_id: str) -> dict[str, Any] | None:
@@ -266,7 +369,7 @@ class MemorySeeder:
             "subject": record.get("subject"),
             "principal": self.principal,
             "sync": True,
-            "tags": ["pheasant-swarm-lab", f"origin:{question_id}"],
+            "tags": ["pheasant-swarm-lab", f"origin:{question_id}", *record.get("tags", [])],
         }
         try:
             outcome = self.client.call(
@@ -299,21 +402,22 @@ class MemorySeeder:
             "outcome": body.get("outcome"),
             "created": body.get("created"),
         }
+        proof = record.get("proof")
+        if isinstance(proof, Proof):
+            # The structured half of what the text says: which lab artifacts
+            # validated which claims, found by which search. The region holds
+            # the readable half; this is what a metric or a reviewer joins on.
+            written["proof"] = proof.as_dict()
         if self.tracer is not None:
             self.tracer.append("memory-records.jsonl", written)
         return written
 
 
-def _locator(entry: Mapping[str, Any], artifact_id: str) -> str | None:
-    """The region's path for ``artifact_id``, from the session's own searches."""
+def entry_documents(entry: Mapping[str, Any]) -> dict[str, str]:
+    """What the session read, by artifact id - the text a preference is checked against."""
 
-    for call in entry.get("search_calls") or []:
-        for result in call.get("results") or []:
-            if str(result.get("artifact_id") or "") == artifact_id and result.get("locator"):
-                return str(result["locator"])
-    return None
-
-
-def _subject(question: str) -> str:
-    terms = content_terms(question)[:3]
-    return " ".join(terms) or "general"
+    return {
+        str(passage.get("artifact_id") or ""): str(passage.get("text") or "")
+        for passage in entry.get("read_passages") or []
+        if passage.get("artifact_id")
+    }

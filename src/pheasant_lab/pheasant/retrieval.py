@@ -158,6 +158,10 @@ class SearchResult:
     #: the edge types it was reached by and the node it was reached ``via``.
     #: Empty when nothing was asked or the region walked nothing.
     graph_neighbors: list[dict[str, Any]] = field(default_factory=list)
+    #: The region's path for the artifact inside its source - what pheasant
+    #: resolves a Markdown link against. ``locator`` may be a section heading
+    #: under taxonomy, so it cannot stand in for this.
+    relative_path: str | None = None
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -178,6 +182,7 @@ class SearchResult:
             "source_type": self.source_type,
             "title": self.title,
             "graph_neighbors": [dict(n) for n in self.graph_neighbors],
+            "relative_path": self.relative_path,
         }
 
 
@@ -458,6 +463,8 @@ def normalise_results(
                 or (str(provenance.get("source_type")) if provenance.get("source_type") else None),
                 title=_first_str(row, "title", "name"),
                 graph_neighbors=_neighbors(row),
+                relative_path=_first_str(row, "relative_path")
+                or _first_str(provenance, "relative_path"),
             )
         )
     return results

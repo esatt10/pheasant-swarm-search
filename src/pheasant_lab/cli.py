@@ -856,7 +856,12 @@ def cmd_evaluate(args: argparse.Namespace) -> int:
 
         seeder = (
             MemorySeeder(
-                session.client, session.capabilities, config.pheasant, tracer=session.tracer
+                session.client,
+                session.capabilities,
+                config.pheasant,
+                tracer=session.tracer,
+                matching=config.metrics.answer_matching,
+                min_evidence=config.replay.memory_min_evidence or 1,
             )
             if session.client is not None and session.capabilities is not None
             else None

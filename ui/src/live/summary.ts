@@ -40,7 +40,9 @@ export function summarize(event: LabEvent): string {
     case "benchmark.built":
       return `${Object.values(p.cohorts ?? {}).reduce((a: number, b: any) => a + Number(b), 0)} questions frozen`;
     case "memory.seeded":
-      return `${p.records} records from ${p.learned_questions} learned questions`;
+      return p.proven_questions === undefined
+        ? `${p.records} records from ${p.learned_questions} learned questions`
+        : `${p.records} records · ${p.proven_questions}/${p.learned_questions} learned answers proven by ≥${p.min_evidence} passage(s)`;
     case "memory.indexed":
       return `${(p.tasks ?? []).length} memory sync(s) ${String(p.outcome ?? "").replace("_", " ")} after ${p.waited_seconds}s · ${p.polls} polls`;
     default:

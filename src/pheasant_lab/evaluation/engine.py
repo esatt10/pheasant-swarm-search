@@ -207,6 +207,13 @@ class EvaluationEngine:
                                 "queries_used": record.get("queries_used"),
                                 "retrieved_artifact_ids": record.get("retrieved_artifact_ids"),
                                 "search_calls": record.get("search_calls"),
+                                # What a memory proof is validated against:
+                                # the claims with their citations, and what
+                                # the session actually read.
+                                "claims": record.get("claims"),
+                                "read_passages": record.get("read_passages"),
+                                "answer_id": record.get("answer_id"),
+                                "snapshot_id": record.get("snapshot_id"),
                             }
                         )
         return first_pass

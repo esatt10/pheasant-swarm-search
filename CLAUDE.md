@@ -199,6 +199,19 @@ docker compose up -d --build                          # lab + a pheasant 0.13.5 
   complete listing). Anything but `indexed` becomes a limitation on the
   report; the run is not refused, because the paired difference is still a
   measurement of *something*, and the report says what.
+- **P1's memory is a retrieval proof, not a note.** `arms/memory_proof.py`
+  writes one readable record per learned question: the question, only the
+  claims `supporting_citations` validates (the rule `evidence_support_rate`
+  scores with), and each validating passage as a Markdown link to its
+  region `relative_path`, with the search and rank that found it and a quote.
+  Fewer than `replay.memory_min_evidence` (k, default 1) validating passages
+  writes nothing, and `memory.seeded` says why. The links are what pheasant's
+  cross-source pass turns into `about` edges (3 per record, which is why 3
+  are listed by default). Alias and preference rules come only from a proven
+  answer, keep the rule on line one (where pheasant parses it) and explain
+  themselves below; the explanation is scrubbed of rule markers. No opaque id
+  is ever an alias term. Checked against a real pheasant region, not only the
+  mock.
 
 - **One selection drives the live page.** `ui/src/live/focus.ts` is the
   whole vocabulary: a focus is a branch or an arm, every panel reads it, and

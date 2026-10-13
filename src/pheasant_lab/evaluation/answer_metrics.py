@@ -453,13 +453,32 @@ def _supported(
 ) -> bool:
     if matching.require_citation_for_support and not citations:
         return False
+    return bool(supporting_citations(claim_text, citations, passages, matching))
+
+
+def supporting_citations(
+    claim_text: str,
+    citations: Sequence[str],
+    passages: Mapping[str, str],
+    matching: AnswerMatchingSection,
+) -> list[str]:
+    """The citations whose passage carries this claim, in citation order.
+
+    The one rule for "a passage this session read supports this claim", used
+    by ``evidence_support_rate`` and by the memory seeder, which writes a
+    claim down as proven only when this returns something. Two callers, one
+    rule: a memory that called a claim validated by a looser test than the
+    metric would be a proof the report does not stand behind.
+    """
+
     claim_tokens = tokens(claim_text)
     if not claim_tokens:
-        return False
+        return []
+    out: list[str] = []
     for citation in citations:
         passage = passages.get(str(citation))
-        if passage is None:
+        if passage is None or str(citation) in out:
             continue
         if containment(claim_tokens, tokens(passage)) >= matching.support_overlap_threshold:
-            return True
-    return False
+            out.append(str(citation))
+    return out
