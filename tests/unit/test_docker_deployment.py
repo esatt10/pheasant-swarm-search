@@ -53,7 +53,7 @@ def test_compose_points_the_lab_at_the_bundled_region() -> None:
     assert url == _connections()["docker"]["url"]
     assert urlsplit(url).hostname == "pheasant"
     assert "./deploy/pheasant/pheasant.yaml:/config/pheasant.yaml:ro" in pheasant["volumes"]
-    assert "0.13.5" in pheasant["image"]
+    assert "0.13.11" in pheasant["image"]
     assert lab["depends_on"]["pheasant"]["condition"] == "service_healthy"
     assert {"lab-runs:/app/runs", "lab-local:/data/local"} <= set(lab["volumes"])
     # Both keys are demanded, never defaulted.

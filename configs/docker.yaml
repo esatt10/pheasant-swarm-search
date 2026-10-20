@@ -6,7 +6,7 @@
 # Sized like the offline demo - fixture literature and the deterministic
 # `replay` models, so the first run is free and needs no key - but pointed at
 # a REAL Pheasant region over MCP (pheasant-mcp.example.yaml): the bundled
-# `pheasant` service in Compose, 0.13.5. The documents the swarm collects are
+# `pheasant` service in Compose, 0.13.11. The documents the swarm collects are
 # submitted, the landing directory is registered as a document_folder source,
 # synced, acknowledged as indexed, and searched by the Pheasant arms.
 #

@@ -117,7 +117,7 @@ def test_a_partial_response_is_partial_not_succeeded(config, tracer):
 # -- ingest ----------------------------------------------------------------
 
 
-def request_for(text: str, source_id: str = "source-1") -> IngestRequest:
+def request_for(text: str, source_id: str = "source-1", region_source: str = "") -> IngestRequest:
     return IngestRequest(
         run_id="run-1",
         topic_id="topic-1",
@@ -128,18 +128,20 @@ def request_for(text: str, source_id: str = "source-1") -> IngestRequest:
         # records on one artifact path.
         source=IngestSource(title="t", stable_identifier=f"10.1/{source_id}"),
         payload=IngestPayload(text=text),
+        region_source=region_source,
     )
 
 
-def ingestor_for(config, server, tracer=None) -> Ingestor:
+def ingestor_for(config, server, tracer=None, pheasant=None) -> Ingestor:
     from pheasant_lab.pheasant.capabilities import resolve
 
-    client = PheasantClient.in_process(config.pheasant, server, tracer=tracer)
+    pheasant = pheasant or config.pheasant
+    client = PheasantClient.in_process(pheasant, server, tracer=tracer)
     session = client.connect()
     return Ingestor(
         client,
-        resolve(config.pheasant, session.tools),
-        config.pheasant,
+        resolve(pheasant, session.tools),
+        pheasant,
         run_id="run-1",
         tracer=tracer,
     )
@@ -172,6 +174,34 @@ def test_a_retry_under_a_seen_key_folds_rather_than_duplicating(config, mock_ser
     assert receipt.submissions == 2, "the caller retried twice"
     assert receipt.deduplicated is True
     assert len(mock_server.documents) == 1, "the region holds one copy"
+
+
+def test_a_second_source_on_one_region_does_not_inherit_the_first_ones_barrier(
+    config, mock_server, tracer
+):
+    """pheasant folds a key it has seen onto its receipt and keeps `indexed`,
+    even when the resubmission lands in another source. With a key that did
+    not name the region source, a second run into a new source on the same
+    region crossed its barrier at once and its arms searched an empty source.
+    Found against a real 0.13.11 fleet; the mock folds the same way now."""
+
+    first = ingestor_for(config, mock_server, tracer)
+    earlier = request_for("body", region_source=config.pheasant.source_name)
+    first.submit([earlier])
+    first.sync()
+    first.acknowledge()
+    assert first.ledger.get(earlier.idempotency_key).indexed is True
+
+    other = config.pheasant.model_copy(update={"source_name": "swarm-lab-second"})
+    second = ingestor_for(config, mock_server, tracer, pheasant=other)
+    later = request_for("body", region_source=other.source_name)
+    assert later.idempotency_key != earlier.idempotency_key
+    receipts = second.submit([later])
+    assert receipts[0].accepted is True
+    assert receipts[0].indexed is False, "nothing in the new source is indexed yet"
+    second.sync()
+    second.acknowledge()
+    assert second.ledger.get(later.idempotency_key).indexed is True
 
 
 def test_acknowledging_does_not_count_as_a_submission(config, mock_server, tracer):
@@ -367,7 +397,7 @@ def _shipped_pheasant_file(environ: dict[str, str] | None = None):
     return PheasantFile.model_validate(interpolate(body, environ or {}, []))
 
 
-def _pheasant_tools(version: str = "0.13.4") -> dict:
+def _pheasant_tools(version: str = "0.13.11") -> dict:
     import json
     from pathlib import Path
 
@@ -375,10 +405,11 @@ def _pheasant_tools(version: str = "0.13.4") -> dict:
     return json.loads(fixture.read_text())["tools"]
 
 
-def test_the_shipped_example_config_resolves_against_a_real_pheasant():
+@pytest.mark.parametrize("version", ["0.13.4", "0.13.11"])
+def test_the_shipped_example_config_resolves_against_a_real_pheasant(version):
     """A regression guard on the configuration itself, against the real thing.
 
-    The schemas are pheasant 0.13.4's own ``tools/list``, captured from a
+    The schemas are pheasant's own ``tools/list``, captured from a
     running region rather than written down, so this fails when the shipped
     map names a tool or an argument the region does not have - including a
     pin it does not accept, which would make a run *look* pinned. The mock
@@ -388,7 +419,7 @@ def test_the_shipped_example_config_resolves_against_a_real_pheasant():
     from pheasant_lab.pheasant.capabilities import configured_arguments, resolve
 
     config = _shipped_pheasant_file()
-    tools = _pheasant_tools()
+    tools = _pheasant_tools(version)
     capabilities = resolve(config, tools)
     unusable = {r.name: r.reason for r in capabilities.resolutions.values() if not r.usable}
     assert unusable == {}

@@ -536,6 +536,7 @@ class Researcher:
                 run_id=self.run_id,
                 topic_id=self.topic.id,
                 namespace=self.config.pheasant.knowledge_base,
+                region_source=self.config.pheasant.source_name,
             )
             by_key = {request.idempotency_key: request for request in requests}
             for record, request in zip(submitable, requests, strict=True):
@@ -621,7 +622,12 @@ def _render_extraction(subtopic: Subtopic, records: list[SourceRecord]) -> str:
 
 
 def ingest_requests_for(
-    records: Sequence[SourceRecord], *, run_id: str, topic_id: str, namespace: str
+    records: Sequence[SourceRecord],
+    *,
+    run_id: str,
+    topic_id: str,
+    namespace: str,
+    region_source: str = "",
 ) -> list[IngestRequest]:
     """Exposed for the contract tests: the exact documents a branch submits."""
 
@@ -643,4 +649,5 @@ def ingest_requests_for(
         run_id=run_id,
         topic_id=topic_id,
         namespace=namespace,
+        region_source=region_source,
     )

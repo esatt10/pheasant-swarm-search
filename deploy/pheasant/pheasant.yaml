@@ -1,6 +1,6 @@
 # ---------------------------------------------------------------------------
 # The bundled region's configuration, for docker-compose.yml's `pheasant`
-# service (ghcr.io/esatt10/pheasant:0.13.5, role all, one container).
+# service (ghcr.io/esatt10/pheasant:0.13.11, role all, one container).
 #
 # VENDORED from pheasant-kb: deploy/compose/swarm-lab.yaml, generated there by
 #   python -m pheasant setup --answers deploy/compose/answers/swarm-lab.json \
@@ -133,6 +133,8 @@ assistant:
     retrieval_modes:
       - text
       - vector
+  decisions:
+    mode: beta
 evaluation:
   enabled: true
   on_material_snapshot: false

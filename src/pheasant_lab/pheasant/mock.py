@@ -539,8 +539,26 @@ class MockPheasantServer:
             existing = self.receipts.get(key)
             if existing is not None:
                 # One key, one receipt: the retry folds onto it and bumps the
-                # region's own count of submissions.
+                # region's own count of submissions. Like pheasant, the bytes
+                # are written again at the recorded path under *this* call's
+                # source, the receipt moves there, and `indexed` stays
+                # `indexed` - even though nothing in that source is indexed.
                 existing["submissions"] = int(existing.get("submissions", 1)) + 1
+                if existing["disposition"] != "rejected":
+                    path = str((existing.get("detail") or {}).get("relative_path") or path)
+                    artifact_id = _artifact_id(source_name, path)
+                    held = self.documents.get(artifact_id)
+                    self.documents[artifact_id] = StoredDocument(
+                        artifact_id=artifact_id,
+                        relative_path=path,
+                        text=text,
+                        metadata=metadata,
+                        content_digest=digest_text(text),
+                        indexed=held.indexed if held is not None else self.auto_index,
+                        source_name=source_name,
+                    )
+                    existing["source_name"] = source_name
+                    existing["artifact_id"] = artifact_id
                 (rejected if existing["disposition"] == "rejected" else accepted).append(
                     dict(existing)
                 )

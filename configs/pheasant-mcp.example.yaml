@@ -8,13 +8,13 @@
 # adapter cannot satisfy the tool's advertised JSON Schema.
 #
 # The defaults match pheasant >= 0.12.6 (see its docs/mcp_tools.md), checked
-# end to end against 0.12.16, 0.13.0, 0.13.1, 0.13.2 and 0.13.4, standalone
-# and role-split. As shipped it targets 0.13.5: `expand` (0.13.1, below; see
-# there for older regions), `get_index_queue` (0.13.2, optional) and
-# `describe_source` (0.13.3, optional). 0.13.5 adds pheasant-kb's note on
-# driving its lab fleet from here and changes nothing under src/, so its MCP
-# surface is 0.13.4's and the 0.13.4 capture stands for it; re-capture once
-# 0.13.5 is published.
+# end to end against 0.12.16, 0.13.0, 0.13.1, 0.13.2, 0.13.4 and 0.13.11,
+# standalone and role-split. As shipped it targets 0.13.11: `expand` (0.13.1,
+# below; see there for older regions), `get_index_queue` (0.13.2, optional)
+# and `describe_source` (0.13.3, optional). 0.13.11's tools only gain optional
+# arguments this map does not send (`search_context`'s `path_prefix` and
+# `exclude_documents`, `submit_documents`'s `content_encoding`), and its HTTP
+# MCP body limit (64 MiB by default) is far above a 20-document text batch.
 #
 # Use the URL as given (`/mcp`): pheasant answers it with a redirect to
 # `/mcp/`, and the client adopts a same-origin redirect once per session

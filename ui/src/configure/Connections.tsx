@@ -219,7 +219,7 @@ export function Connections({
               <div className="fld">
                 <label>MCP URL</label>
                 <input className="input mono" value={form.url} onChange={(e) => patch({ url: e.target.value })} />
-                <div className="h">pheasant-kb ≥ 0.13.5, ending in /mcp. In Compose: http://pheasant:8765/mcp</div>
+                <div className="h">pheasant-kb ≥ 0.13.11, ending in /mcp. In Compose: http://pheasant:8765/mcp</div>
               </div>
             ) : form.transport === "stdio" ? (
               <div className="fld">

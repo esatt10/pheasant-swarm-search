@@ -62,7 +62,7 @@ uv run python scripts/export_schemas.py               # after changing a record 
 make ui && uv run pheasant-lab serve                  # the console, http://127.0.0.1:8770
 uv run pheasant-lab mcp                               # the console's tools over MCP stdio (/mcp over HTTP)
 uv run pheasant-lab settings --section models         # every setting, explained
-docker compose up -d --build                          # lab + a pheasant 0.13.5 region (docs/docker.md)
+docker compose up -d --build                          # lab + a pheasant 0.13.11 region (docs/docker.md)
 ```
 
 ## 4. Design decisions worth knowing before you change something
@@ -468,5 +468,16 @@ docker compose up -d --build                          # lab + a pheasant 0.13.5 
   while every in-process test (loopback) passed. The vendored region config
   lists the origin, `tests/unit/test_docker_deployment.py` holds it, and
   pheasant-kb's lab-fleet answers list `http://api:8765`. Found by running
-  the Compose stack.
+  the Compose stack. The fleet half was claimed here before it was true:
+  pheasant-kb 0.13.11's answers listed `host.docker.internal` and not `api`,
+  and its `test_fleet_manifests.py` now holds both names.
+- **An idempotency key that does not name the destination folds across
+  destinations.** The key was `pheasant-lab:<lab source>:<digest>`, so a
+  second run on the same region into a new `source_name` resubmitted known
+  keys - and pheasant folds a known key onto its receipt and keeps
+  `indexed` while writing the bytes into the new source. The barrier crossed
+  in 25 ms with the new source empty and every Pheasant arm abstained. The
+  key names the region source now (`IngestRequest.region_source`), and the
+  mock folds as pheasant does. Found by running against a real role-split
+  0.13.11 region that an earlier run had used.
 

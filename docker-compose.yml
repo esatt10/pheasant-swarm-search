@@ -7,7 +7,7 @@
 # lab       the console (UI, HTTP API, MCP) and the CLI it launches runs with.
 #           Runs live in the `lab-runs` volume and record `deployment: docker`;
 #           the console lists only those (PHEASANT_LAB_RUN_SCOPE=docker).
-# pheasant  pheasant-kb 0.13.5, one container (role all), configured by
+# pheasant  pheasant-kb 0.13.11, one container (role all), configured by
 #           deploy/pheasant/pheasant.yaml so the lab can submit, register,
 #           sync, index and search. Its own UI is on http://127.0.0.1:8765.
 #
@@ -25,7 +25,7 @@ x-region-token: &region-token
 
 services:
   pheasant:
-    image: ${PHEASANT_IMAGE:-ghcr.io/esatt10/pheasant:0.13.5}
+    image: ${PHEASANT_IMAGE:-ghcr.io/esatt10/pheasant:0.13.11}
     restart: unless-stopped
     init: true
     environment:

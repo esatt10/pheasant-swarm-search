@@ -8,7 +8,7 @@
 # those go to connections.local.yaml in the local directory and may carry a
 # token, stored 0600 and never shown again.
 #
-# Every streamable_http target below is pheasant-kb >= 0.13.5 with MCP on
+# Every streamable_http target below is pheasant-kb >= 0.13.11 with MCP on
 # (`server.mcp.transports.streamable_http: true`), its state path allow-listed
 # (`security.allow_workspace_roots` includes /state, so the lab can register
 # its landing directory as a document_folder source) and, when it sets
@@ -28,7 +28,7 @@ connections:
   docker:
     description: >-
       The region bundled in this repository's docker-compose.yml (one
-      pheasant 0.13.5 container, role all). Reached by service name from the
+      pheasant 0.13.11 container, role all). Reached by service name from the
       lab container.
     transport: streamable_http
     url: http://pheasant:8765/mcp

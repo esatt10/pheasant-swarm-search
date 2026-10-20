@@ -1,8 +1,16 @@
 # pheasant-swarm-lab against pheasant-kb's role-split lab fleet.
 #
-# Start the fleet first, from a pheasant-kb checkout (0.13.5):
+# Start the fleet first, from a pheasant-kb checkout (0.13.11 or later),
+# with its pheasant.yaml generated from deploy/compose/answers/pheasant-lab.json:
 #
+#   python -m pheasant setup --answers deploy/compose/answers/pheasant-lab.json \
+#     --accept-defaults --plain --target compose --output pheasant.yaml --force
 #   docker compose --env-file .env -f deploy/compose/docker-compose.pheasant-lab.yml up -d
+#
+# That answer file must list http://api:8765 in server.api.cors_origins:
+# pheasant derives its MCP host allow-list from it, and the lab dials the
+# fleet by that name, so without it every call is answered 421. pheasant-kb
+# 0.13.11's file did not; regenerate after pulling a checkout that does.
 #
 # That Compose project is named `pheasant-lab`, so its network is
 # `pheasant-lab_default` and its API/MCP tier answers as `api:8765`. Then,
