@@ -17,9 +17,9 @@ Two services:
   CLI it launches runs with. Runs go to the `lab-runs` volume; what the console
   writes (topics, connections, prices) goes to `lab-local`.
 - **`pheasant`** — pheasant-kb **0.13.11**, one container (`role: all`),
-  configured by `deploy/pheasant/pheasant.yaml`. That file is generated in
-  pheasant-kb (`deploy/compose/answers/swarm-lab.json`) and vendored here; it
-  is what lets the lab actually load documents and have them indexed:
+  configured by `deploy/pheasant/pheasant.yaml`. That file is maintained here
+  (pheasant-kb's only lab setup is the pheasant-lab fleet, below); it is what
+  lets the lab actually load documents and have them indexed:
 
   | Setting | Why the lab needs it |
   |---|---|
