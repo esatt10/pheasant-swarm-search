@@ -16,7 +16,7 @@ Two services:
 - **`lab`** — this repository's image: the console (UI, HTTP API, MCP) and the
   CLI it launches runs with. Runs go to the `lab-runs` volume; what the console
   writes (topics, connections, prices) goes to `lab-local`.
-- **`pheasant`** — pheasant-kb **0.13.11**, one container (`role: all`),
+- **`pheasant`** — pheasant-kb **0.14.0**, one container (`role: all`),
   configured by `deploy/pheasant/pheasant.yaml`. That file is maintained here
   (pheasant-kb's only lab setup is the pheasant-lab fleet, below); it is what
   lets the lab actually load documents and have them indexed:
@@ -75,8 +75,8 @@ docker compose -f docker-compose.fleet.yml up -d --build
 ```
 
 The fleet's answer file admits `http://api:8765` for the same 421 reason as
-above. pheasant-kb 0.13.11's did not, so pull a checkout after it and
-regenerate the fleet's `pheasant.yaml` from the answer file. On the fleet a sync is
+above (from pheasant-kb 0.14.0; 0.13.11's did not, so regenerate a
+`pheasant.yaml` written from an older checkout). On the fleet a sync is
 *queued* and claimed by the indexer; the Live view shows that interval.
 
 **Any other region**: add it under **Configure → Pheasant connection** (URL,

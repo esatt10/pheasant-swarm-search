@@ -147,8 +147,14 @@ class MockPheasantServer:
         tool_names: Mapping[str, str] | None = None,
         state_path: str | Path | None = None,
         claim_seconds: float = 0.0,
+        keep_indexed_on_move: bool = False,
     ) -> None:
         self.knowledge_base = knowledge_base
+        #: How a resubmitted key that lands somewhere new folds onto its
+        #: receipt. pheasant >= 0.14.0 sends it back to `accepted`; before
+        #: that the receipt stayed `indexed` with nothing indexed behind it,
+        #: and the lab still supports those regions.
+        self.keep_indexed_on_move = keep_indexed_on_move
         self.protocol_version = protocol_version
         self.faults = faults or FaultPlan()
         self.auto_index = auto_index
@@ -541,12 +547,22 @@ class MockPheasantServer:
                 # One key, one receipt: the retry folds onto it and bumps the
                 # region's own count of submissions. Like pheasant, the bytes
                 # are written again at the recorded path under *this* call's
-                # source, the receipt moves there, and `indexed` stays
-                # `indexed` - even though nothing in that source is indexed.
+                # source and the receipt moves there. A receipt that now names
+                # another artifact or other bytes is `accepted` again
+                # (pheasant >= 0.14.0), unless this mock plays an older region.
                 existing["submissions"] = int(existing.get("submissions", 1)) + 1
                 if existing["disposition"] != "rejected":
                     path = str((existing.get("detail") or {}).get("relative_path") or path)
                     artifact_id = _artifact_id(source_name, path)
+                    sha = digest_text(text).removeprefix("sha256:")
+                    moved = (artifact_id, sha) != (
+                        existing.get("artifact_id"),
+                        existing.get("content_sha256"),
+                    )
+                    if moved and not self.keep_indexed_on_move:
+                        existing["disposition"] = "accepted"
+                        existing["indexed_at"] = None
+                        existing["content_sha256"] = sha
                     held = self.documents.get(artifact_id)
                     self.documents[artifact_id] = StoredDocument(
                         artifact_id=artifact_id,

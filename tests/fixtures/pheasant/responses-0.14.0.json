@@ -1,0 +1,1007 @@
+{
+  "acknowledge_ingest": {
+    "acknowledged": 0,
+    "knowledge_base": "pheasant-lab",
+    "still_accepted": 1,
+    "submission_id": null
+  },
+  "describe_source": {
+    "by_directory": [
+      {
+        "directory": "topic-tardigrade-radiotolerance/",
+        "documents": 19
+      }
+    ],
+    "by_extension": [
+      {
+        "documents": 19,
+        "extension": ".md"
+      }
+    ],
+    "knowledge_base": "pheasant-lab",
+    "links": {
+      "incoming": [],
+      "outgoing": []
+    },
+    "recent": [
+      {
+        "extension": ".md",
+        "id": "file:swarm-lab-literature:topic-tardigrade-radiotolerance/trehalose-accumulation-does-not-correlate-with-radiotolerance-across-tardigrade-species-nowak-2016.md:branch=none",
+        "last_indexed_at": "2026-10-21T13:34:21Z",
+        "path": "topic-tardigrade-radiotolerance/trehalose-accumulation-does-not-correlate-with-radiotolerance-across-tardigrade-species-nowak-2016.md",
+        "size_bytes": 864,
+        "source": "swarm-lab-literature",
+        "type": "markdown_note"
+      },
+      {
+        "extension": ".md",
+        "id": "file:swarm-lab-literature:topic-tardigrade-radiotolerance/survival-of-hydrated-tardigrades-at-5000-gy-gamma-exposure-tanaka-2014.md:branch=none",
+        "last_indexed_at": "2026-10-21T13:34:21Z",
+        "path": "topic-tardigrade-radiotolerance/survival-of-hydrated-tardigrades-at-5000-gy-gamma-exposure-tanaka-2014.md",
+        "size_bytes": 787,
+        "source": "swarm-lab-literature",
+        "type": "markdown_note"
+      },
+      {
+        "extension": ".md",
+        "id": "file:swarm-lab-literature:topic-tardigrade-radiotolerance/structural-basis-of-nucleosome-binding-by-the-tardigrade-damage-suppressor-protein-chen-2018.md:branch=none",
+        "last_indexed_at": "2026-10-21T13:34:21Z",
+        "path": "topic-tardigrade-radiotolerance/structural-basis-of-nucleosome-binding-by-the-tardigrade-damage-suppressor-protein-chen-2018.md",
+        "size_bytes": 900,
+        "source": "swarm-lab-literature",
+        "type": "markdown_note"
+      },
+      {
+        "extension": ".md",
+        "id": "file:swarm-lab-literature:topic-tardigrade-radiotolerance/reported-tardigrade-survival-of-5000-gy-is-not-supported-when-dosimetry-is-standardised-whitfield-2018.md:branch=none",
+        "last_indexed_at": "2026-10-21T13:34:21Z",
+        "path": "topic-tardigrade-radiotolerance/reported-tardigrade-survival-of-5000-gy-is-not-supported-when-dosimetry-is-standardised-whitfield-2018.md",
+        "size_bytes": 930,
+        "source": "swarm-lab-literature",
+        "type": "markdown_note"
+      },
+      {
+        "extension": ".md",
+        "id": "file:swarm-lab-literature:topic-tardigrade-radiotolerance/non-homologous-end-joining-is-dispensable-for-tardigrade-survival-of-acute-gamma-exposure-costa-2019.md:branch=none",
+        "last_indexed_at": "2026-10-21T13:34:21Z",
+        "path": "topic-tardigrade-radiotolerance/non-homologous-end-joining-is-dispensable-for-tardigrade-survival-of-acute-gamma-exposure-costa-2019.md",
+        "size_bytes": 906,
+        "source": "swarm-lab-literature",
+        "type": "markdown_note"
+      }
+    ],
+    "source": {
+      "description": "Documents submitted by pheasant-swarm-lab",
+      "enabled": true,
+      "last_indexed_at": "2026-10-21T13:34:21Z",
+      "location": "/state/uploads/swarm-lab-literature",
+      "name": "swarm-lab-literature",
+      "status": "healthy",
+      "type": "document_folder"
+    },
+    "totals": {
+      "documents": 19,
+      "size_bytes": 17211
+    }
+  },
+  "get_file_summary": {
+    "acl": null,
+    "content": "---\nlab_source_id: source-ac72293581f1a365\ntitle: Dsup, a nucleosome-binding protein from Ramazzottius varieornatus, suppresses hydroxyl-radical damage to DNA\nstable_identifier: 10.5555/synthetic.dsup.2016.001\ncanonical_url: \npublished_at: 2016-09-20\nsource_type: journal_article\nvenue: Journal of Extremophile Biology\nlicense: cc-by\nauthors: Hiroshi Tanaka, Mei Sato, Kenji Ito\nprovider: fixtures\n---\n\n# Dsup, a nucleosome-binding protein from Ramazzottius varieornatus, suppresses hydroxyl-radical damage to DNA\n\nWe characterise Dsup, a damage suppressor protein isolated from the tardigrade Ramazzottius varieornatus. Dsup binds nucleosomes directly and coats chromatin in a sequence-independent manner. In an in vitro hydroxyl-radical footprinting assay, Dsup reduced double-strand break formation by 42 percent relative to protein-free controls. Human HEK293 cells stably expressing Dsup showed a 38 percent reduction in gamma-H2AX foci after 4 Gy of X-irradiation. The protective effect scaled with Dsup occupancy and was abolished by mutating the C-terminal basic region, indicating that shielding, rather than repair induction, is the mechanism.",
+    "git_branch": null,
+    "git_commit": null,
+    "id": "file:swarm-lab-literature:topic-tardigrade-radiotolerance/dsup-a-nucleosome-binding-protein-from-ramazzottius-varieornatus-suppresses-hydroxyl-radical-tanaka-2016.md:branch=none",
+    "last_indexed_at": "2026-10-21T13:34:21Z",
+    "mime_type": "text/markdown",
+    "mtime": "2026-10-21T13:34:21Z",
+    "path": "/state/uploads/swarm-lab-literature/topic-tardigrade-radiotolerance/dsup-a-nucleosome-binding-protein-from-ramazzottius-varieornatus-suppresses-hydroxyl-radical-tanaka-2016.md",
+    "relative_path": "topic-tardigrade-radiotolerance/dsup-a-nucleosome-binding-protein-from-ramazzottius-varieornatus-suppresses-hydroxyl-radical-tanaka-2016.md",
+    "sha256": "e2c2bd5fc8576713367e653ced8da6465e4bf881e2f395857064cdf176f80397",
+    "size_bytes": 1154,
+    "source_id": "swarm-lab-literature",
+    "status": "indexed",
+    "summary": "---\nlab_source_id: source-ac72293581f1a365\ntitle: Dsup, a nucleosome-binding protein from Ramazzottius varieornatus, suppresses hydroxyl-radical damage to DNA\nstable_identifier: 10.5555/synthetic.dsup.2016.001\ncanonical_url: \npublished_at: ",
+    "type": "markdown_note"
+  },
+  "get_index_queue": {
+    "backend": "local",
+    "counts": {
+      "awaiting_claim": 2,
+      "claim_lapsed": 0,
+      "claimed": 0,
+      "dead": 0,
+      "retry_scheduled": 0
+    },
+    "depth": {
+      "dead": 0,
+      "done": 0,
+      "inflight": 0,
+      "pending": 2
+    },
+    "enabled": true,
+    "knowledge_base": "pheasant-lab",
+    "listing": "complete",
+    "tasks": [
+      {
+        "attempts": 0,
+        "claimed_by": null,
+        "enqueued_at": "2026-10-21T13:35:06.753128+00:00",
+        "last_error": null,
+        "max_attempts": 3,
+        "mode": "incremental",
+        "position": 1,
+        "source": "agent-memory",
+        "state": "awaiting_claim",
+        "task_id": "idx-f4d009ffe41c3902ebad2f01",
+        "visible_at": "2026-10-21T13:35:06.753128+00:00",
+        "waiting_seconds": 0.0
+      },
+      {
+        "attempts": 0,
+        "claimed_by": null,
+        "enqueued_at": "2026-10-21T13:35:06.766575+00:00",
+        "last_error": null,
+        "max_attempts": 3,
+        "mode": "incremental",
+        "position": 2,
+        "source": "fixture-wire",
+        "state": "awaiting_claim",
+        "task_id": "idx-ec1a7727c9876b357eb3163f",
+        "visible_at": "2026-10-21T13:35:06.766575+00:00",
+        "waiting_seconds": 0.0
+      }
+    ]
+  },
+  "memory_write": {
+    "created": true,
+    "outcome": "created",
+    "record": {
+      "asserted_at": "2026-10-21T13:35:06Z",
+      "kind": "fact",
+      "path": "/memory/org/mem-20261021T133506Z-5035fe6c676273e4.md",
+      "record_id": "mem-20261021T133506Z-5035fe6c676273e4",
+      "schema_version": 2,
+      "scope": "org",
+      "subject": null,
+      "supersedes": null,
+      "tags": [],
+      "text": "fixture fact",
+      "valid_from": "2026-10-21T13:35:06Z",
+      "valid_until": null,
+      "written_by": "pheasant-swarm-lab"
+    },
+    "source": "agent-memory",
+    "sync": {
+      "source_id": "agent-memory",
+      "status": "queued",
+      "task_id": "idx-f4d009ffe41c3902ebad2f01"
+    }
+  },
+  "note": "Responses captured from a running pheasant 0.14.0; host paths normalised to /state. Role-split region: an api replica with a graph-service replica and a local index queue, no indexer running during the capture, so every sync - the memory write's included - is queued and the index tasks are unclaimed.",
+  "register_source": {
+    "knowledge_base": "pheasant-lab",
+    "provenance": {
+      "client_id": null,
+      "config_update_required": true,
+      "persistence": "runtime_state",
+      "registered_at": "2026-10-21T13:35:06Z",
+      "registered_by": "mcp",
+      "transport": "mcp"
+    },
+    "source": {
+      "chunking": {
+        "enabled": true,
+        "max_chars": 4000,
+        "overlap_chars": 400,
+        "strategy": "semantic"
+      },
+      "connector": {
+        "allow_experimental": false,
+        "allowed_hosts": [],
+        "api_content_field": "content",
+        "api_endpoint": null,
+        "api_items_field": "items",
+        "api_key_env": null,
+        "headers": {},
+        "max_refresh_seconds": 259200,
+        "request_timeout_seconds": 10,
+        "runtime": "native",
+        "wasm_module_path": null
+      },
+      "description": null,
+      "enabled": true,
+      "exclude": [
+        "**/.git/**",
+        "**/node_modules/**",
+        "**/__pycache__/**",
+        "**/.venv/**",
+        "**/venv/**",
+        "**/dist/**",
+        "**/build/**",
+        "**/target/**",
+        "**/.next/**",
+        "**/.cache/**",
+        "**/.tox/**",
+        "**/.gradle/**",
+        "**/.terraform/**",
+        "**/.mypy_cache/**",
+        "**/.pytest_cache/**",
+        "**/.ruff_cache/**",
+        "**/*.min.js",
+        "**/*.min.css",
+        "**/*.map",
+        "**/package-lock.json",
+        "**/pnpm-lock.yaml",
+        "**/yarn.lock",
+        "**/poetry.lock",
+        "**/uv.lock",
+        "**/Cargo.lock",
+        "**/Gemfile.lock",
+        "**/composer.lock",
+        "**/go.sum",
+        "**/.env",
+        "**/.env.*",
+        "**/*.envrc",
+        "**/*id_rsa*",
+        "**/*id_dsa*",
+        "**/*id_ecdsa*",
+        "**/*id_ed25519*",
+        "**/*.pem",
+        "**/*.key",
+        "**/*.p12",
+        "**/*.pfx",
+        "**/*.jks",
+        "**/*.keystore",
+        "**/*.asc",
+        "**/*.gpg",
+        "**/.ssh/**",
+        "**/.gnupg/**",
+        "**/.aws/**",
+        "**/.azure/**",
+        "**/.kube/**",
+        "**/.docker/config.json",
+        "**/.config/gh/**",
+        "**/.config/gcloud/**",
+        "**/.netrc",
+        "**/.npmrc",
+        "**/.pypirc",
+        "**/.git-credentials",
+        "**/credentials",
+        "**/credentials.json",
+        "**/secrets.yaml",
+        "**/secrets.yml",
+        "**/*.kdbx",
+        "**/Library/Keychains/**",
+        "**/.mozilla/**",
+        "**/.password-store/**"
+      ],
+      "include": [
+        "**/*"
+      ],
+      "limits": null,
+      "max_depth": null,
+      "name": "fixture-wire",
+      "path": "/state/uploads/fixture-wire",
+      "repo": {
+        "branch_policy": "current",
+        "clone_path": null,
+        "clone_ref": null,
+        "clone_url": null,
+        "commit_trigger": true,
+        "dependency_graph": {},
+        "include_uncommitted": true
+      },
+      "sync": {
+        "interval_seconds": null,
+        "on_file_change": "debounce",
+        "on_git_commit": true,
+        "on_startup": true
+      },
+      "taxonomy": {
+        "detect": [],
+        "enabled": false,
+        "graph_nodes": true,
+        "max_depth": 6,
+        "split_on_sections": true
+      },
+      "type": "document_folder",
+      "urls": []
+    },
+    "status": "registered"
+  },
+  "search_context": {
+    "counts": {
+      "graph": 5,
+      "returned": 2,
+      "text": 6,
+      "vector": 0
+    },
+    "graph_generation": "7b303234d54f9108",
+    "knowledge_base": "pheasant-lab",
+    "lineage": {
+      "knowledge_base": "pheasant-lab",
+      "query_id": "q-8f295e3de60e753386756f7837467d9b",
+      "state": {
+        "acl_enforced": false,
+        "as_of": null,
+        "criteria": {
+          "exclude_source_types": null,
+          "exclude_sources": null,
+          "memory": "off",
+          "min_score": null,
+          "node_types": null,
+          "source_name": null,
+          "source_types": null
+        },
+        "graph_generation": "7b303234d54f9108",
+        "max_results": 2,
+        "memory": {
+          "enabled": true,
+          "policy": {
+            "as_of": null,
+            "current_only": true,
+            "include_rules": false,
+            "max_results": null,
+            "mode": "off",
+            "scopes": null,
+            "subject": null,
+            "tiers": null
+          },
+          "steering": {
+            "aliases": {},
+            "exclusions": [],
+            "preferences": [
+              {
+                "prefer": [
+                  "topic-tardigrade-radiotolerance/base-excision-repair-flux-measured-in-irradiated-tardigrades-by-isotope-labelling-almeida-2020.md"
+                ],
+                "when": [
+                  "causally",
+                  "correlated",
+                  "establishing"
+                ]
+              },
+              {
+                "prefer": [
+                  "topic-tardigrade-radiotolerance/dsup-a-nucleosome-binding-protein-from-ramazzottius-varieornatus-suppresses-hydroxyl-radical-tanaka-2016.md"
+                ],
+                "when": [
+                  "mechanism",
+                  "binds",
+                  "chromatin"
+                ]
+              },
+              {
+                "prefer": [
+                  "topic-tardigrade-radiotolerance/a-meta-analysis-of-tardigrade-radiation-survival-reveals-systematic-reporting-gaps-berg-2023.md"
+                ],
+                "when": [
+                  "analysed",
+                  "dosimetry",
+                  "meta"
+                ]
+              },
+              {
+                "prefer": [
+                  "topic-tardigrade-radiotolerance/survival-of-hydrated-tardigrades-at-5000-gy-gamma-exposure-tanaka-2014.md"
+                ],
+                "when": [
+                  "cells",
+                  "figures",
+                  "magnitude"
+                ]
+              }
+            ]
+          }
+        },
+        "mode": "hybrid",
+        "principal": null,
+        "principal_groups": [],
+        "ranking": {
+          "bundle_id": "",
+          "provenance": "config",
+          "values": {
+            "depth_prior": 0.05,
+            "filter_overfetch": 3.0,
+            "graph_arm_weight": 1.0,
+            "heading_weight": 2.0,
+            "path_weight": 3.0,
+            "prefer_bonus": 0.35,
+            "prior_floor": 0.25,
+            "rrf_k": 60.0,
+            "sample_prior": 0.3,
+            "test_prior": 0.6,
+            "text_arm_weight": 1.0,
+            "text_weight": 1.0,
+            "title_weight": 8.0,
+            "vector_arm_weight": 1.0
+          }
+        },
+        "snapshot_current": null,
+        "snapshot_id": null
+      },
+      "timing": {
+        "retrieval_ms": 17.196,
+        "returned": 2,
+        "truncated": true
+      },
+      "trace_id": null
+    },
+    "memory_policy": {
+      "as_of": null,
+      "current_only": true,
+      "include_rules": false,
+      "max_results": null,
+      "mode": "off",
+      "scopes": null,
+      "subject": null,
+      "tiers": null
+    },
+    "memory_steering": {
+      "aliases": {},
+      "exclusions": [],
+      "preferences": [
+        {
+          "prefer": [
+            "topic-tardigrade-radiotolerance/base-excision-repair-flux-measured-in-irradiated-tardigrades-by-isotope-labelling-almeida-2020.md"
+          ],
+          "when": [
+            "causally",
+            "correlated",
+            "establishing"
+          ]
+        },
+        {
+          "prefer": [
+            "topic-tardigrade-radiotolerance/dsup-a-nucleosome-binding-protein-from-ramazzottius-varieornatus-suppresses-hydroxyl-radical-tanaka-2016.md"
+          ],
+          "when": [
+            "mechanism",
+            "binds",
+            "chromatin"
+          ]
+        },
+        {
+          "prefer": [
+            "topic-tardigrade-radiotolerance/a-meta-analysis-of-tardigrade-radiation-survival-reveals-systematic-reporting-gaps-berg-2023.md"
+          ],
+          "when": [
+            "analysed",
+            "dosimetry",
+            "meta"
+          ]
+        },
+        {
+          "prefer": [
+            "topic-tardigrade-radiotolerance/survival-of-hydrated-tardigrades-at-5000-gy-gamma-exposure-tanaka-2014.md"
+          ],
+          "when": [
+            "cells",
+            "figures",
+            "magnitude"
+          ]
+        }
+      ]
+    },
+    "mode": "hybrid",
+    "query": "Dsup nucleosome",
+    "results": [
+      {
+        "chunk_id": "chunk:swarm-lab-literature:topic-tardigrade-radiotolerance/dsup-a-nucleosome-binding-protein-from-ramazzottius-varieornatus-suppresses-hydroxyl-radical-tanaka-2016.md:sha256=6f59e1ef89424a372468244335b39525761a7c57d4701e52dbda84be4ff04da2:chunk=0000",
+        "chunks": [
+          {
+            "chunk_id": "chunk:swarm-lab-literature:topic-tardigrade-radiotolerance/dsup-a-nucleosome-binding-protein-from-ramazzottius-varieornatus-suppresses-hydroxyl-radical-tanaka-2016.md:sha256=6f59e1ef89424a372468244335b39525761a7c57d4701e52dbda84be4ff04da2:chunk=0000",
+            "end_line": 16,
+            "start_line": 1,
+            "text_preview": "---\nlab_source_id: source-ac72293581f1a365\ntitle: Dsup, a nucleosome-binding protein from Ramazzottius varieornatus, suppresses hydroxyl-radical damage to DNA\nstable_identifier: 10.5555/synthetic.dsup.2016.001\ncanonical_url: \npublished_at: 2016-09-20\nsource_type: journal_article\nvenue: Journal of Extremophile Biology\nlicense: cc-by\nauthors: Hiroshi Tanaka, Mei Sato, Kenji Ito\nprovider: fixtures\n---\n\n# Dsup, a nucleosome-binding protein from Ramazzottius varieornatus, suppresses hydroxyl-radical "
+          }
+        ],
+        "node_id": "file:swarm-lab-literature:topic-tardigrade-radiotolerance/dsup-a-nucleosome-binding-protein-from-ramazzottius-varieornatus-suppresses-hydroxyl-radical-tanaka-2016.md:branch=none",
+        "path": "/state/uploads/swarm-lab-literature/topic-tardigrade-radiotolerance/dsup-a-nucleosome-binding-protein-from-ramazzottius-varieornatus-suppresses-hydroxyl-radical-tanaka-2016.md",
+        "provenance": {
+          "path": "/state/uploads/swarm-lab-literature/topic-tardigrade-radiotolerance/dsup-a-nucleosome-binding-protein-from-ramazzottius-varieornatus-suppresses-hydroxyl-radical-tanaka-2016.md",
+          "relative_path": "topic-tardigrade-radiotolerance/dsup-a-nucleosome-binding-protein-from-ramazzottius-varieornatus-suppresses-hydroxyl-radical-tanaka-2016.md",
+          "source_id": "swarm-lab-literature",
+          "source_type": "document_folder"
+        },
+        "rank": 1,
+        "reason": "SQLite FTS/path match",
+        "relative_path": "topic-tardigrade-radiotolerance/dsup-a-nucleosome-binding-protein-from-ramazzottius-varieornatus-suppresses-hydroxyl-radical-tanaka-2016.md",
+        "retrieved_by": "graph+text",
+        "score": 0.032522,
+        "summary": "---\nlab_source_id: source-ac72293581f1a365\ntitle: Dsup, a nucleosome-binding protein from Ramazzottius varieornatus, suppresses hydroxyl-radical damage to DNA\nstable_identifier: 10.5555/synthetic.dsup.2016.001\ncanonical_url: \npublished_at: ",
+        "title": "topic-tardigrade-radiotolerance/dsup-a-nucleosome-binding-protein-from-ramazzottius-varieornatus-suppresses-hydroxyl-radical-tanaka-2016.md",
+        "type": "chunk"
+      },
+      {
+        "chunk_id": "chunk:swarm-lab-literature:topic-tardigrade-radiotolerance/a-dsup-homologue-in-hypsibius-exemplaris-binds-dna-but-does-not-protect-against-ionising-haddad-2021.md:sha256=e622c9342107fa93cf0711b5d13a6b487fb9c9dbcc69ad8d365deadc1e766c75:chunk=0000",
+        "chunks": [
+          {
+            "chunk_id": "chunk:swarm-lab-literature:topic-tardigrade-radiotolerance/a-dsup-homologue-in-hypsibius-exemplaris-binds-dna-but-does-not-protect-against-ionising-haddad-2021.md:sha256=e622c9342107fa93cf0711b5d13a6b487fb9c9dbcc69ad8d365deadc1e766c75:chunk=0000",
+            "end_line": 16,
+            "start_line": 1,
+            "text_preview": "---\nlab_source_id: source-431abf90ca3f007f\ntitle: A Dsup homologue in Hypsibius exemplaris binds DNA but does not protect against ionising radiation\nstable_identifier: 10.5555/synthetic.dsup.2021.022\ncanonical_url: \npublished_at: 2021-07-30\nsource_type: journal_article\nvenue: Comparative Molecular Zoology\nlicense: cc-by\nauthors: Nadia Haddad, Wei Chen\nprovider: fixtures\n---\n\n# A Dsup homologue in Hypsibius exemplaris binds DNA but does not protect against ionising radiation\n\nThe Hypsibius exempl"
+          }
+        ],
+        "node_id": "file:swarm-lab-literature:topic-tardigrade-radiotolerance/a-dsup-homologue-in-hypsibius-exemplaris-binds-dna-but-does-not-protect-against-ionising-haddad-2021.md:branch=none",
+        "path": "/state/uploads/swarm-lab-literature/topic-tardigrade-radiotolerance/a-dsup-homologue-in-hypsibius-exemplaris-binds-dna-but-does-not-protect-against-ionising-haddad-2021.md",
+        "provenance": {
+          "path": "/state/uploads/swarm-lab-literature/topic-tardigrade-radiotolerance/a-dsup-homologue-in-hypsibius-exemplaris-binds-dna-but-does-not-protect-against-ionising-haddad-2021.md",
+          "relative_path": "topic-tardigrade-radiotolerance/a-dsup-homologue-in-hypsibius-exemplaris-binds-dna-but-does-not-protect-against-ionising-haddad-2021.md",
+          "source_id": "swarm-lab-literature",
+          "source_type": "document_folder"
+        },
+        "rank": 2,
+        "reason": "SQLite FTS/path match",
+        "relative_path": "topic-tardigrade-radiotolerance/a-dsup-homologue-in-hypsibius-exemplaris-binds-dna-but-does-not-protect-against-ionising-haddad-2021.md",
+        "retrieved_by": "graph+text",
+        "score": 0.031498,
+        "summary": "---\nlab_source_id: source-431abf90ca3f007f\ntitle: A Dsup homologue in Hypsibius exemplaris binds DNA but does not protect against ionising radiation\nstable_identifier: 10.5555/synthetic.dsup.2021.022\ncanonical_url: \npublished_at: 2021-07-30",
+        "title": "topic-tardigrade-radiotolerance/a-dsup-homologue-in-hypsibius-exemplaris-binds-dna-but-does-not-protect-against-ionising-haddad-2021.md",
+        "type": "chunk"
+      }
+    ]
+  },
+  "search_context_expanded": {
+    "counts": {
+      "graph": 5,
+      "returned": 2,
+      "text": 6,
+      "vector": 0
+    },
+    "expansion": {
+      "depth": 2,
+      "edge_types": null,
+      "exclude_edge_types": [
+        "has_chunk",
+        "indexes"
+      ],
+      "max_neighbors": 6,
+      "nodes": 12,
+      "seeds": 2,
+      "seeds_skipped": 0
+    },
+    "graph_generation": "7b303234d54f9108",
+    "knowledge_base": "pheasant-lab",
+    "lineage": {
+      "knowledge_base": "pheasant-lab",
+      "query_id": "q-8f295e3de60e753386756f7837467d9b",
+      "state": {
+        "acl_enforced": false,
+        "as_of": null,
+        "criteria": {
+          "exclude_source_types": null,
+          "exclude_sources": null,
+          "memory": "off",
+          "min_score": null,
+          "node_types": null,
+          "source_name": null,
+          "source_types": null
+        },
+        "graph_generation": "7b303234d54f9108",
+        "max_results": 2,
+        "memory": {
+          "enabled": true,
+          "policy": {
+            "as_of": null,
+            "current_only": true,
+            "include_rules": false,
+            "max_results": null,
+            "mode": "off",
+            "scopes": null,
+            "subject": null,
+            "tiers": null
+          },
+          "steering": {
+            "aliases": {},
+            "exclusions": [],
+            "preferences": [
+              {
+                "prefer": [
+                  "topic-tardigrade-radiotolerance/base-excision-repair-flux-measured-in-irradiated-tardigrades-by-isotope-labelling-almeida-2020.md"
+                ],
+                "when": [
+                  "causally",
+                  "correlated",
+                  "establishing"
+                ]
+              },
+              {
+                "prefer": [
+                  "topic-tardigrade-radiotolerance/dsup-a-nucleosome-binding-protein-from-ramazzottius-varieornatus-suppresses-hydroxyl-radical-tanaka-2016.md"
+                ],
+                "when": [
+                  "mechanism",
+                  "binds",
+                  "chromatin"
+                ]
+              },
+              {
+                "prefer": [
+                  "topic-tardigrade-radiotolerance/a-meta-analysis-of-tardigrade-radiation-survival-reveals-systematic-reporting-gaps-berg-2023.md"
+                ],
+                "when": [
+                  "analysed",
+                  "dosimetry",
+                  "meta"
+                ]
+              },
+              {
+                "prefer": [
+                  "topic-tardigrade-radiotolerance/survival-of-hydrated-tardigrades-at-5000-gy-gamma-exposure-tanaka-2014.md"
+                ],
+                "when": [
+                  "cells",
+                  "figures",
+                  "magnitude"
+                ]
+              }
+            ]
+          }
+        },
+        "mode": "hybrid",
+        "principal": null,
+        "principal_groups": [],
+        "ranking": {
+          "bundle_id": "",
+          "provenance": "config",
+          "values": {
+            "depth_prior": 0.05,
+            "filter_overfetch": 3.0,
+            "graph_arm_weight": 1.0,
+            "heading_weight": 2.0,
+            "path_weight": 3.0,
+            "prefer_bonus": 0.35,
+            "prior_floor": 0.25,
+            "rrf_k": 60.0,
+            "sample_prior": 0.3,
+            "test_prior": 0.6,
+            "text_arm_weight": 1.0,
+            "text_weight": 1.0,
+            "title_weight": 8.0,
+            "vector_arm_weight": 1.0
+          }
+        },
+        "snapshot_current": null,
+        "snapshot_id": null
+      },
+      "timing": {
+        "retrieval_ms": 10.695,
+        "returned": 2,
+        "truncated": true
+      },
+      "trace_id": null
+    },
+    "memory_policy": {
+      "as_of": null,
+      "current_only": true,
+      "include_rules": false,
+      "max_results": null,
+      "mode": "off",
+      "scopes": null,
+      "subject": null,
+      "tiers": null
+    },
+    "memory_steering": {
+      "aliases": {},
+      "exclusions": [],
+      "preferences": [
+        {
+          "prefer": [
+            "topic-tardigrade-radiotolerance/base-excision-repair-flux-measured-in-irradiated-tardigrades-by-isotope-labelling-almeida-2020.md"
+          ],
+          "when": [
+            "causally",
+            "correlated",
+            "establishing"
+          ]
+        },
+        {
+          "prefer": [
+            "topic-tardigrade-radiotolerance/dsup-a-nucleosome-binding-protein-from-ramazzottius-varieornatus-suppresses-hydroxyl-radical-tanaka-2016.md"
+          ],
+          "when": [
+            "mechanism",
+            "binds",
+            "chromatin"
+          ]
+        },
+        {
+          "prefer": [
+            "topic-tardigrade-radiotolerance/a-meta-analysis-of-tardigrade-radiation-survival-reveals-systematic-reporting-gaps-berg-2023.md"
+          ],
+          "when": [
+            "analysed",
+            "dosimetry",
+            "meta"
+          ]
+        },
+        {
+          "prefer": [
+            "topic-tardigrade-radiotolerance/survival-of-hydrated-tardigrades-at-5000-gy-gamma-exposure-tanaka-2014.md"
+          ],
+          "when": [
+            "cells",
+            "figures",
+            "magnitude"
+          ]
+        }
+      ]
+    },
+    "mode": "hybrid",
+    "query": "Dsup nucleosome",
+    "results": [
+      {
+        "chunk_id": "chunk:swarm-lab-literature:topic-tardigrade-radiotolerance/dsup-a-nucleosome-binding-protein-from-ramazzottius-varieornatus-suppresses-hydroxyl-radical-tanaka-2016.md:sha256=6f59e1ef89424a372468244335b39525761a7c57d4701e52dbda84be4ff04da2:chunk=0000",
+        "chunks": [
+          {
+            "chunk_id": "chunk:swarm-lab-literature:topic-tardigrade-radiotolerance/dsup-a-nucleosome-binding-protein-from-ramazzottius-varieornatus-suppresses-hydroxyl-radical-tanaka-2016.md:sha256=6f59e1ef89424a372468244335b39525761a7c57d4701e52dbda84be4ff04da2:chunk=0000",
+            "end_line": 16,
+            "start_line": 1,
+            "text_preview": "---\nlab_source_id: source-ac72293581f1a365\ntitle: Dsup, a nucleosome-binding protein from Ramazzottius varieornatus, suppresses hydroxyl-radical damage to DNA\nstable_identifier: 10.5555/synthetic.dsup.2016.001\ncanonical_url: \npublished_at: 2016-09-20\nsource_type: journal_article\nvenue: Journal of Extremophile Biology\nlicense: cc-by\nauthors: Hiroshi Tanaka, Mei Sato, Kenji Ito\nprovider: fixtures\n---\n\n# Dsup, a nucleosome-binding protein from Ramazzottius varieornatus, suppresses hydroxyl-radical "
+          }
+        ],
+        "graph": {
+          "neighbors": [
+            {
+              "artifact_id": "file:swarm-lab-literature:topic-tardigrade-radiotolerance/survival-of-hydrated-tardigrades-at-5000-gy-gamma-exposure-tanaka-2014.md:branch=none",
+              "depth": 1,
+              "edge_types": [
+                "mentions"
+              ],
+              "label": "Extremophile Biology",
+              "node_id": "entity:pheasant-lab:swarm-lab-literature:extremophile-biology",
+              "source_id": "swarm-lab-literature",
+              "type": "entity",
+              "via": "file:swarm-lab-literature:topic-tardigrade-radiotolerance/dsup-a-nucleosome-binding-protein-from-ramazzottius-varieornatus-suppresses-hydroxyl-radical-tanaka-2016.md:branch=none"
+            },
+            {
+              "artifact_id": "file:swarm-lab-literature:topic-tardigrade-radiotolerance/heterologous-expression-of-dsup-in-human-cells-confers-partial-protection-against-x-ray-induced-vogt-2019.md:branch=none",
+              "depth": 1,
+              "edge_types": [
+                "mentions"
+              ],
+              "label": "H2AX",
+              "node_id": "entity:pheasant-lab:swarm-lab-literature:h2ax",
+              "source_id": "swarm-lab-literature",
+              "type": "entity",
+              "via": "file:swarm-lab-literature:topic-tardigrade-radiotolerance/dsup-a-nucleosome-binding-protein-from-ramazzottius-varieornatus-suppresses-hydroxyl-radical-tanaka-2016.md:branch=none"
+            },
+            {
+              "artifact_id": "file:swarm-lab-literature:topic-tardigrade-radiotolerance/failure-to-reproduce-dsup-mediated-radioprotection-in-independently-derived-stable-cell-lines-raman-2022.md:branch=none",
+              "depth": 1,
+              "edge_types": [
+                "mentions"
+              ],
+              "label": "HEK293",
+              "node_id": "entity:pheasant-lab:swarm-lab-literature:hek293",
+              "source_id": "swarm-lab-literature",
+              "type": "entity",
+              "via": "file:swarm-lab-literature:topic-tardigrade-radiotolerance/dsup-a-nucleosome-binding-protein-from-ramazzottius-varieornatus-suppresses-hydroxyl-radical-tanaka-2016.md:branch=none"
+            },
+            {
+              "artifact_id": "file:swarm-lab-literature:topic-tardigrade-radiotolerance/survival-of-hydrated-tardigrades-at-5000-gy-gamma-exposure-tanaka-2014.md:branch=none",
+              "depth": 1,
+              "edge_types": [
+                "mentions"
+              ],
+              "label": "Hiroshi Tanaka",
+              "node_id": "entity:pheasant-lab:swarm-lab-literature:hiroshi-tanaka",
+              "source_id": "swarm-lab-literature",
+              "type": "entity",
+              "via": "file:swarm-lab-literature:topic-tardigrade-radiotolerance/dsup-a-nucleosome-binding-protein-from-ramazzottius-varieornatus-suppresses-hydroxyl-radical-tanaka-2016.md:branch=none"
+            },
+            {
+              "artifact_id": "file:swarm-lab-literature:topic-tardigrade-radiotolerance/expansion-of-dna-repair-gene-families-in-the-ramazzottius-varieornatus-genome-ito-2017.md:branch=none",
+              "depth": 1,
+              "edge_types": [
+                "mentions"
+              ],
+              "label": "Kenji Ito",
+              "node_id": "entity:pheasant-lab:swarm-lab-literature:kenji-ito",
+              "source_id": "swarm-lab-literature",
+              "type": "entity",
+              "via": "file:swarm-lab-literature:topic-tardigrade-radiotolerance/dsup-a-nucleosome-binding-protein-from-ramazzottius-varieornatus-suppresses-hydroxyl-radical-tanaka-2016.md:branch=none"
+            },
+            {
+              "artifact_id": "file:swarm-lab-literature:topic-tardigrade-radiotolerance/expression-level-dependence-reconciles-conflicting-reports-of-dsup-radioprotection-sato-2023.md:branch=none",
+              "depth": 1,
+              "edge_types": [
+                "mentions"
+              ],
+              "label": "Mei Sato",
+              "node_id": "entity:pheasant-lab:swarm-lab-literature:mei-sato",
+              "source_id": "swarm-lab-literature",
+              "type": "entity",
+              "via": "file:swarm-lab-literature:topic-tardigrade-radiotolerance/dsup-a-nucleosome-binding-protein-from-ramazzottius-varieornatus-suppresses-hydroxyl-radical-tanaka-2016.md:branch=none"
+            }
+          ],
+          "seed": "file:swarm-lab-literature:topic-tardigrade-radiotolerance/dsup-a-nucleosome-binding-protein-from-ramazzottius-varieornatus-suppresses-hydroxyl-radical-tanaka-2016.md:branch=none",
+          "truncated": true
+        },
+        "node_id": "file:swarm-lab-literature:topic-tardigrade-radiotolerance/dsup-a-nucleosome-binding-protein-from-ramazzottius-varieornatus-suppresses-hydroxyl-radical-tanaka-2016.md:branch=none",
+        "path": "/state/uploads/swarm-lab-literature/topic-tardigrade-radiotolerance/dsup-a-nucleosome-binding-protein-from-ramazzottius-varieornatus-suppresses-hydroxyl-radical-tanaka-2016.md",
+        "provenance": {
+          "path": "/state/uploads/swarm-lab-literature/topic-tardigrade-radiotolerance/dsup-a-nucleosome-binding-protein-from-ramazzottius-varieornatus-suppresses-hydroxyl-radical-tanaka-2016.md",
+          "relative_path": "topic-tardigrade-radiotolerance/dsup-a-nucleosome-binding-protein-from-ramazzottius-varieornatus-suppresses-hydroxyl-radical-tanaka-2016.md",
+          "source_id": "swarm-lab-literature",
+          "source_type": "document_folder"
+        },
+        "rank": 1,
+        "reason": "SQLite FTS/path match",
+        "relative_path": "topic-tardigrade-radiotolerance/dsup-a-nucleosome-binding-protein-from-ramazzottius-varieornatus-suppresses-hydroxyl-radical-tanaka-2016.md",
+        "retrieved_by": "graph+text",
+        "score": 0.032522,
+        "summary": "---\nlab_source_id: source-ac72293581f1a365\ntitle: Dsup, a nucleosome-binding protein from Ramazzottius varieornatus, suppresses hydroxyl-radical damage to DNA\nstable_identifier: 10.5555/synthetic.dsup.2016.001\ncanonical_url: \npublished_at: ",
+        "title": "topic-tardigrade-radiotolerance/dsup-a-nucleosome-binding-protein-from-ramazzottius-varieornatus-suppresses-hydroxyl-radical-tanaka-2016.md",
+        "type": "chunk"
+      },
+      {
+        "chunk_id": "chunk:swarm-lab-literature:topic-tardigrade-radiotolerance/a-dsup-homologue-in-hypsibius-exemplaris-binds-dna-but-does-not-protect-against-ionising-haddad-2021.md:sha256=e622c9342107fa93cf0711b5d13a6b487fb9c9dbcc69ad8d365deadc1e766c75:chunk=0000",
+        "chunks": [
+          {
+            "chunk_id": "chunk:swarm-lab-literature:topic-tardigrade-radiotolerance/a-dsup-homologue-in-hypsibius-exemplaris-binds-dna-but-does-not-protect-against-ionising-haddad-2021.md:sha256=e622c9342107fa93cf0711b5d13a6b487fb9c9dbcc69ad8d365deadc1e766c75:chunk=0000",
+            "end_line": 16,
+            "start_line": 1,
+            "text_preview": "---\nlab_source_id: source-431abf90ca3f007f\ntitle: A Dsup homologue in Hypsibius exemplaris binds DNA but does not protect against ionising radiation\nstable_identifier: 10.5555/synthetic.dsup.2021.022\ncanonical_url: \npublished_at: 2021-07-30\nsource_type: journal_article\nvenue: Comparative Molecular Zoology\nlicense: cc-by\nauthors: Nadia Haddad, Wei Chen\nprovider: fixtures\n---\n\n# A Dsup homologue in Hypsibius exemplaris binds DNA but does not protect against ionising radiation\n\nThe Hypsibius exempl"
+          }
+        ],
+        "graph": {
+          "neighbors": [
+            {
+              "artifact_id": "file:swarm-lab-literature:topic-tardigrade-radiotolerance/trehalose-accumulation-does-not-correlate-with-radiotolerance-across-tardigrade-species-nowak-2016.md:branch=none",
+              "depth": 1,
+              "edge_types": [
+                "mentions"
+              ],
+              "label": "Comparative Molecular Zoology",
+              "node_id": "entity:pheasant-lab:swarm-lab-literature:comparative-molecular-zoology",
+              "source_id": "swarm-lab-literature",
+              "type": "entity",
+              "via": "file:swarm-lab-literature:topic-tardigrade-radiotolerance/a-dsup-homologue-in-hypsibius-exemplaris-binds-dna-but-does-not-protect-against-ionising-haddad-2021.md:branch=none"
+            },
+            {
+              "artifact_id": "file:swarm-lab-literature:topic-tardigrade-radiotolerance/structural-basis-of-nucleosome-binding-by-the-tardigrade-damage-suppressor-protein-chen-2018.md:branch=none",
+              "depth": 1,
+              "edge_types": [
+                "mentions"
+              ],
+              "label": "Nadia Haddad",
+              "node_id": "entity:pheasant-lab:swarm-lab-literature:nadia-haddad",
+              "source_id": "swarm-lab-literature",
+              "type": "entity",
+              "via": "file:swarm-lab-literature:topic-tardigrade-radiotolerance/a-dsup-homologue-in-hypsibius-exemplaris-binds-dna-but-does-not-protect-against-ionising-haddad-2021.md:branch=none"
+            },
+            {
+              "artifact_id": "file:swarm-lab-literature:topic-tardigrade-radiotolerance/a-dsup-homologue-in-hypsibius-exemplaris-binds-dna-but-does-not-protect-against-ionising-haddad-2021.md:branch=none",
+              "depth": 1,
+              "edge_types": [
+                "mentions"
+              ],
+              "label": "The Hypsibius",
+              "node_id": "entity:pheasant-lab:swarm-lab-literature:the-hypsibius",
+              "source_id": "swarm-lab-literature",
+              "type": "entity",
+              "via": "file:swarm-lab-literature:topic-tardigrade-radiotolerance/a-dsup-homologue-in-hypsibius-exemplaris-binds-dna-but-does-not-protect-against-ionising-haddad-2021.md:branch=none"
+            },
+            {
+              "artifact_id": "file:swarm-lab-literature:topic-tardigrade-radiotolerance/structural-basis-of-nucleosome-binding-by-the-tardigrade-damage-suppressor-protein-chen-2018.md:branch=none",
+              "depth": 1,
+              "edge_types": [
+                "mentions"
+              ],
+              "label": "Wei Chen",
+              "node_id": "entity:pheasant-lab:swarm-lab-literature:wei-chen",
+              "source_id": "swarm-lab-literature",
+              "type": "entity",
+              "via": "file:swarm-lab-literature:topic-tardigrade-radiotolerance/a-dsup-homologue-in-hypsibius-exemplaris-binds-dna-but-does-not-protect-against-ionising-haddad-2021.md:branch=none"
+            },
+            {
+              "depth": 2,
+              "edge_types": [
+                "derived_from"
+              ],
+              "label": "topic-tardigrade-radiotolerance/trehalose-accumulation-does-not-correlate-with-radiotolerance-across-tardigrade-species-nowak-2016.md",
+              "node_id": "file:swarm-lab-literature:topic-tardigrade-radiotolerance/trehalose-accumulation-does-not-correlate-with-radiotolerance-across-tardigrade-species-nowak-2016.md:branch=none",
+              "relative_path": "topic-tardigrade-radiotolerance/trehalose-accumulation-does-not-correlate-with-radiotolerance-across-tardigrade-species-nowak-2016.md",
+              "source_id": "swarm-lab-literature",
+              "type": "markdown_note",
+              "via": "entity:pheasant-lab:swarm-lab-literature:comparative-molecular-zoology"
+            },
+            {
+              "depth": 2,
+              "edge_types": [
+                "derived_from"
+              ],
+              "label": "topic-tardigrade-radiotolerance/machine-learning-prediction-of-protein-dna-binding-affinity-from-sequence-haddad-2022.md",
+              "node_id": "file:swarm-lab-literature:topic-tardigrade-radiotolerance/machine-learning-prediction-of-protein-dna-binding-affinity-from-sequence-haddad-2022.md:branch=none",
+              "relative_path": "topic-tardigrade-radiotolerance/machine-learning-prediction-of-protein-dna-binding-affinity-from-sequence-haddad-2022.md",
+              "source_id": "swarm-lab-literature",
+              "type": "markdown_note",
+              "via": "entity:pheasant-lab:swarm-lab-literature:nadia-haddad"
+            }
+          ],
+          "seed": "file:swarm-lab-literature:topic-tardigrade-radiotolerance/a-dsup-homologue-in-hypsibius-exemplaris-binds-dna-but-does-not-protect-against-ionising-haddad-2021.md:branch=none",
+          "truncated": true
+        },
+        "node_id": "file:swarm-lab-literature:topic-tardigrade-radiotolerance/a-dsup-homologue-in-hypsibius-exemplaris-binds-dna-but-does-not-protect-against-ionising-haddad-2021.md:branch=none",
+        "path": "/state/uploads/swarm-lab-literature/topic-tardigrade-radiotolerance/a-dsup-homologue-in-hypsibius-exemplaris-binds-dna-but-does-not-protect-against-ionising-haddad-2021.md",
+        "provenance": {
+          "path": "/state/uploads/swarm-lab-literature/topic-tardigrade-radiotolerance/a-dsup-homologue-in-hypsibius-exemplaris-binds-dna-but-does-not-protect-against-ionising-haddad-2021.md",
+          "relative_path": "topic-tardigrade-radiotolerance/a-dsup-homologue-in-hypsibius-exemplaris-binds-dna-but-does-not-protect-against-ionising-haddad-2021.md",
+          "source_id": "swarm-lab-literature",
+          "source_type": "document_folder"
+        },
+        "rank": 2,
+        "reason": "SQLite FTS/path match",
+        "relative_path": "topic-tardigrade-radiotolerance/a-dsup-homologue-in-hypsibius-exemplaris-binds-dna-but-does-not-protect-against-ionising-haddad-2021.md",
+        "retrieved_by": "graph+text",
+        "score": 0.031498,
+        "summary": "---\nlab_source_id: source-431abf90ca3f007f\ntitle: A Dsup homologue in Hypsibius exemplaris binds DNA but does not protect against ionising radiation\nstable_identifier: 10.5555/synthetic.dsup.2021.022\ncanonical_url: \npublished_at: 2021-07-30",
+        "title": "topic-tardigrade-radiotolerance/a-dsup-homologue-in-hypsibius-exemplaris-binds-dna-but-does-not-protect-against-ionising-haddad-2021.md",
+        "type": "chunk"
+      }
+    ]
+  },
+  "server_version": "0.14.0",
+  "submit_documents": {
+    "accepted": [
+      {
+        "artifact_id": "file:fixture-wire:topic-x/10.1_a.md:branch=none",
+        "chunk_count": null,
+        "content_sha256": "de0a009e1ce22ed223cfb6eba1481b09b2c1005bb2a5a4c1728b90d729b28e73",
+        "detail": {
+          "agent_id": null,
+          "content_digest": "sha256:not-the-region-s",
+          "lab_source_id": "source-aaa",
+          "path": "/state/uploads/fixture-wire/topic-x/10.1_a.md",
+          "relative_path": "topic-x/10.1_a.md"
+        },
+        "disposition": "accepted",
+        "error_code": null,
+        "idempotency_key": "pheasant-lab:source-aaa:1",
+        "indexed_at": null,
+        "receipt_id": "8d67310478c5c2b28084101fbdb277a0",
+        "retryable": false,
+        "source_name": "fixture-wire",
+        "submission_id": "submission-fixture",
+        "submissions": 1,
+        "submitted_at": "2026-10-21T13:35:06Z",
+        "updated_at": "2026-10-21T13:35:06Z"
+      }
+    ],
+    "directory": "/state/uploads/fixture-wire",
+    "indexed": 0,
+    "knowledge_base": "pheasant-lab",
+    "next": "sync the source, then call ingest_acknowledge to cross the index barrier",
+    "rejected": [
+      {
+        "artifact_id": null,
+        "chunk_count": null,
+        "content_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "detail": {
+          "agent_id": null,
+          "reason": "topic-x/empty.md is empty"
+        },
+        "disposition": "rejected",
+        "error_code": "INVALID_REQUEST",
+        "idempotency_key": "pheasant-lab:source-bbb:2",
+        "indexed_at": null,
+        "receipt_id": "1bca6c7859c27789458d5f71f4f34645",
+        "retryable": false,
+        "source_name": "fixture-wire",
+        "submission_id": "submission-fixture",
+        "submissions": 1,
+        "submitted_at": "2026-10-21T13:35:06Z",
+        "updated_at": "2026-10-21T13:35:06Z"
+      }
+    ],
+    "source_name": "fixture-wire",
+    "submission_id": "submission-fixture",
+    "submitted": 2
+  },
+  "sync_source_queued": {
+    "source_id": "fixture-wire",
+    "status": "queued",
+    "task_id": "idx-ec1a7727c9876b357eb3163f"
+  }
+}

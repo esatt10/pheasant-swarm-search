@@ -275,7 +275,7 @@ def _probe_against(monkeypatch, handler, *, token: str | None):
 def _authenticated_region(request):
     import httpx
 
-    wire = json.loads((REPO_ROOT / "tests/fixtures/pheasant/responses-0.13.11.json").read_text())
+    wire = json.loads((REPO_ROOT / "tests/fixtures/pheasant/responses-0.14.0.json").read_text())
     if request.url.path == "/ready":
         return httpx.Response(200, json={"status": "ready", "role": "api"})
     if request.headers.get("authorization") != "Bearer right":
@@ -400,7 +400,7 @@ def test_the_api_lists_and_folds_runs(console: str, fleet_run: Path) -> None:
     # answers than are due, which is what the arm bars draw.
     for arm in view["arms"]:
         assert arm["abstained"] <= arm["answered"] <= view["questions_total"]
-    # The mock describes the lab's source after the barrier, like 0.13.11.
+    # The mock describes the lab's source after the barrier, like 0.14.0.
     inventory = view["region"]["inventory"]
     assert inventory["disposition"] == "consistent"
     assert inventory["region_documents"] == inventory["receipts_indexed"] > 0

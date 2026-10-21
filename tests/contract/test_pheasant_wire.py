@@ -5,10 +5,10 @@ Every payload read here was captured from a running pheasant
 ``scripts/capture_pheasant_fixtures.py``). The readers are checked against each
 supported release, not only the newest: 0.12.16, 0.13.0, 0.13.1 (which
 adds search ``expand``), 0.13.2 (which adds ``get_index_queue``), 0.13.4
-(whose ``describe_source`` arrived in 0.13.3) and 0.13.11 (whose tools only
-gain optional arguments the lab does not send). The last three were captured
-from a role-split region with no indexer running, so their syncs - the memory
-source's included - answer ``queued``. The mock region is
+(whose ``describe_source`` arrived in 0.13.3), 0.13.11 (whose tools only
+gain optional arguments the lab does not send) and 0.14.0 (the same shapes).
+The last four were captured from a role-split region with no indexer running,
+so their syncs - the memory source's included - answer ``queued``. The mock region is
 kept faithful to the same shapes, but a mock is only as faithful as whoever
 last checked it - the receipts, the acknowledgement counts, the hit shape and
 the nested memory record were each read wrongly here for as long as only the
@@ -48,7 +48,7 @@ PHEASANT_PREFERENCE = re.compile(
 
 
 #: Every capture the readers must understand, oldest first.
-RELEASES = ("0.12.16", "0.13.0", "0.13.1", "0.13.2", "0.13.4", "0.13.11")
+RELEASES = ("0.12.16", "0.13.0", "0.13.1", "0.13.2", "0.13.4", "0.13.11", "0.14.0")
 
 
 def captured(version: str) -> dict:
@@ -306,7 +306,7 @@ def test_the_mock_holds_a_queued_memory_record_back_until_it_is_indexed(config):
     assert server._memory_hits("dsup nucleosomes", as_of=None, include_rules=False)
 
 
-@pytest.mark.parametrize("version", ["0.13.2", "0.13.4", "0.13.11"])
+@pytest.mark.parametrize("version", ["0.13.2", "0.13.4", "0.13.11", "0.14.0"])
 def test_the_mock_queues_in_pheasants_fleet_shape(version):
     wire = captured(version)
     server = MockPheasantServer(claim_seconds=60)
@@ -560,7 +560,7 @@ def _inventory_ingestor(config, payload, *, indexed: int, total: int) -> Ingesto
     return ingestor
 
 
-@pytest.mark.parametrize("version", ["0.13.4", "0.13.11"])
+@pytest.mark.parametrize("version", ["0.13.4", "0.13.11", "0.14.0"])
 def test_the_regions_inventory_is_read_beside_the_receipts(config, version):
     """``describe_source`` (0.13.3): a count read off the region's own index."""
 
@@ -573,7 +573,7 @@ def test_the_regions_inventory_is_read_beside_the_receipts(config, version):
     assert summary["region_bytes"] == payload["totals"]["size_bytes"]
 
 
-@pytest.mark.parametrize("version", ["0.13.4", "0.13.11"])
+@pytest.mark.parametrize("version", ["0.13.4", "0.13.11", "0.14.0"])
 def test_a_region_holding_more_than_the_receipts_say_is_a_mismatch(config, version):
     payload = captured(version)["describe_source"]
     held = payload["totals"]["documents"]
@@ -587,7 +587,7 @@ def test_an_inventory_the_region_cannot_give_is_unknown_not_a_finding(config):
     assert ingestor.inventory() is None
 
 
-@pytest.mark.parametrize("version", ["0.13.4", "0.13.11"])
+@pytest.mark.parametrize("version", ["0.13.4", "0.13.11", "0.14.0"])
 def test_the_mock_describes_a_source_in_pheasants_shape(config, version):
     real = captured(version)["describe_source"]
     server = MockPheasantServer()

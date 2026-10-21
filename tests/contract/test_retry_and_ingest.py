@@ -176,15 +176,18 @@ def test_a_retry_under_a_seen_key_folds_rather_than_duplicating(config, mock_ser
     assert len(mock_server.documents) == 1, "the region holds one copy"
 
 
+@pytest.mark.parametrize("older_region", [True, False])
 def test_a_second_source_on_one_region_does_not_inherit_the_first_ones_barrier(
-    config, mock_server, tracer
+    config, tracer, older_region
 ):
-    """pheasant folds a key it has seen onto its receipt and keeps `indexed`,
-    even when the resubmission lands in another source. With a key that did
-    not name the region source, a second run into a new source on the same
-    region crossed its barrier at once and its arms searched an empty source.
-    Found against a real 0.13.11 fleet; the mock folds the same way now."""
+    """Before 0.14.0 pheasant folded a key it had seen onto its receipt and
+    kept `indexed`, even when the resubmission landed in another source. With
+    a key that did not name the region source, a second run into a new source
+    on the same region crossed its barrier at once and its arms searched an
+    empty source. Found against a real 0.13.11 fleet. 0.14.0 resets such a
+    receipt; the lab's key is scoped either way, for the regions before it."""
 
+    mock_server = MockPheasantServer(keep_indexed_on_move=older_region)
     first = ingestor_for(config, mock_server, tracer)
     earlier = request_for("body", region_source=config.pheasant.source_name)
     first.submit([earlier])
@@ -202,6 +205,20 @@ def test_a_second_source_on_one_region_does_not_inherit_the_first_ones_barrier(
     second.sync()
     second.acknowledge()
     assert second.ledger.get(later.idempotency_key).indexed is True
+
+
+def test_a_receipt_that_moves_is_accepted_again_on_0_14(config, mock_server, tracer):
+    """pheasant 0.14.0's fold, which the mock plays by default: one key sent
+    to another source is not indexed there until that source is synced."""
+
+    first = ingestor_for(config, mock_server, tracer)
+    request = request_for("body")
+    first.submit([request])
+    first.sync()
+    first.acknowledge()
+    other = config.pheasant.model_copy(update={"source_name": "swarm-lab-second"})
+    receipt = ingestor_for(config, mock_server, tracer, pheasant=other).submit([request])[0]
+    assert receipt.accepted is True and receipt.indexed is False
 
 
 def test_acknowledging_does_not_count_as_a_submission(config, mock_server, tracer):
@@ -397,7 +414,7 @@ def _shipped_pheasant_file(environ: dict[str, str] | None = None):
     return PheasantFile.model_validate(interpolate(body, environ or {}, []))
 
 
-def _pheasant_tools(version: str = "0.13.11") -> dict:
+def _pheasant_tools(version: str = "0.14.0") -> dict:
     import json
     from pathlib import Path
 
@@ -405,7 +422,7 @@ def _pheasant_tools(version: str = "0.13.11") -> dict:
     return json.loads(fixture.read_text())["tools"]
 
 
-@pytest.mark.parametrize("version", ["0.13.4", "0.13.11"])
+@pytest.mark.parametrize("version", ["0.13.4", "0.13.11", "0.14.0"])
 def test_the_shipped_example_config_resolves_against_a_real_pheasant(version):
     """A regression guard on the configuration itself, against the real thing.
 

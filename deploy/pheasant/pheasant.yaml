@@ -1,12 +1,12 @@
 # ---------------------------------------------------------------------------
 # The bundled region's configuration, for docker-compose.yml's `pheasant`
-# service (ghcr.io/esatt10/pheasant:0.13.11, role all, one container).
+# service (ghcr.io/esatt10/pheasant:0.14.0, role all, one container).
 #
 # Maintained here. pheasant-kb ships one lab setup, the pheasant-lab fleet
 # (docker-compose.fleet.yml drives it); this is the lab's own single-container
 # region. Check it against a pheasant release with
 #   pheasant validate --no-require-paths deploy/pheasant/pheasant.yaml
-# (0.13.11 accepts it). tests/unit/test_docker_deployment.py holds what the
+# (0.14.0 accepts it). tests/unit/test_docker_deployment.py holds what the
 # lab needs from it:
 #
 # * MCP over streamable HTTP at /mcp, with every tool the capability map names,

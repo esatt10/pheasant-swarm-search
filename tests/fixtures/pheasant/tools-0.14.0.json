@@ -1,0 +1,1388 @@
+{
+  "note": "tools/list entries for the tools the lab's capability map names, captured from a running pheasant. Regenerate against a new release rather than editing by hand (scripts/capture_pheasant_fixtures.py).",
+  "server": {
+    "name": "pheasant",
+    "protocol_version": "2025-11-25",
+    "version": "0.14.0"
+  },
+  "tools": {
+    "acknowledge_ingest": {
+      "description": "Cross the index barrier for receipts whose artifacts now exist.",
+      "inputSchema": {
+        "properties": {
+          "knowledge_base": {
+            "title": "Knowledge Base",
+            "type": "string"
+          },
+          "submission_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Submission Id"
+          }
+        },
+        "required": [
+          "knowledge_base"
+        ],
+        "title": "acknowledge_ingestArguments",
+        "type": "object"
+      },
+      "name": "acknowledge_ingest"
+    },
+    "describe_retrieval": {
+      "description": "Report how this knowledge base retrieves, and what you can override.\n\nReturns the standing configuration (default mode, result count,\nretrieval rounds and depth), which search modes actually work here\n(semantic search is only offered when a vector index exists), the\nsources present, and the criteria each retrieval tool accepts per\ncall. Call this before guessing at parameters for an unfamiliar\nregion.\n",
+      "inputSchema": {
+        "properties": {
+          "knowledge_base": {
+            "title": "Knowledge Base",
+            "type": "string"
+          }
+        },
+        "required": [
+          "knowledge_base"
+        ],
+        "title": "describe_retrievalArguments",
+        "type": "object"
+      },
+      "name": "describe_retrieval"
+    },
+    "describe_source": {
+      "description": "Describe one source in detail, without searching it.\n\nReturns its type, location, status and last-indexed time; its document\ncount and size; its documents by file type and by top-level directory;\nthe five most recently indexed; and link counts per other source and\nedge type, outgoing (its documents link to) and incoming (linked from).\nLinks are graph edges between two indexed documents: resolved imports,\nreferences, embeds and the like. With security.acl_enforced on, only\ndocuments the principal may read are counted.\n",
+      "inputSchema": {
+        "properties": {
+          "knowledge_base": {
+            "title": "Knowledge Base",
+            "type": "string"
+          },
+          "principal": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Principal"
+          },
+          "principal_groups": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Principal Groups"
+          },
+          "source_name": {
+            "title": "Source Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "knowledge_base",
+          "source_name"
+        ],
+        "title": "describe_sourceArguments",
+        "type": "object"
+      },
+      "name": "describe_source"
+    },
+    "get_file_summary": {
+      "description": "Return summary and provenance for one indexed file.",
+      "inputSchema": {
+        "properties": {
+          "knowledge_base": {
+            "title": "Knowledge Base",
+            "type": "string"
+          },
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "source_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Source Name"
+          }
+        },
+        "required": [
+          "knowledge_base",
+          "path"
+        ],
+        "title": "get_file_summaryArguments",
+        "type": "object"
+      },
+      "name": "get_file_summary"
+    },
+    "get_graph_neighbors": {
+      "description": "Return graph neighbors around a node, breadth-first along outgoing edges.\n\nnode_id is any graph node id: a search hit's node_id or chunk_id, or a\nneighbour returned by search_context's expand. Structural (contains)\nedges are walked first. edge_types keeps only those edges;\nexclude_edge_types and exclude_node_types prune the walk itself, so a\nhub's indexes fan-out does not spend the budget. max_nodes bounds the\nwalk (unbounded by default; set it when starting from a directory or\nsource node). Each neighbour carries its depth, the edge types it was\nreached by, its path from node_id, and its attributes.\n",
+      "inputSchema": {
+        "properties": {
+          "depth": {
+            "default": 2,
+            "title": "Depth",
+            "type": "integer"
+          },
+          "edge_types": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Edge Types"
+          },
+          "exclude_edge_types": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Exclude Edge Types"
+          },
+          "exclude_node_types": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Exclude Node Types"
+          },
+          "knowledge_base": {
+            "title": "Knowledge Base",
+            "type": "string"
+          },
+          "max_nodes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Max Nodes"
+          },
+          "node_id": {
+            "title": "Node Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "knowledge_base",
+          "node_id"
+        ],
+        "title": "get_graph_neighborsArguments",
+        "type": "object"
+      },
+      "name": "get_graph_neighbors"
+    },
+    "get_graph_slice": {
+      "description": "Return the connected sub-graph around a node: nodes plus every link among them.\n\nWhere get_graph_neighbors returns a list of nodes reached, this returns\nthe induced sub-graph (nodes, links between any two of them, and each\nnode's hop distance under depths), which is what you want to reason\nabout how a set of results relate to each other. truncated is true\nwhen the slice filled limit before running out of graph.\n",
+      "inputSchema": {
+        "properties": {
+          "depth": {
+            "default": 1,
+            "title": "Depth",
+            "type": "integer"
+          },
+          "edge_types": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Edge Types"
+          },
+          "exclude_edge_types": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Exclude Edge Types"
+          },
+          "exclude_node_types": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Exclude Node Types"
+          },
+          "knowledge_base": {
+            "title": "Knowledge Base",
+            "type": "string"
+          },
+          "limit": {
+            "default": 100,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "node_id": {
+            "title": "Node Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "knowledge_base",
+          "node_id"
+        ],
+        "title": "get_graph_sliceArguments",
+        "type": "object"
+      },
+      "name": "get_graph_slice"
+    },
+    "get_index_queue": {
+      "description": "Outstanding index tasks and whether an indexer has claimed each one.\n\nOn a fleet, ``sync_source`` answers ``status: queued``: the sync was\npublished, not run. Each task here is ``awaiting_claim`` (no indexer\nhas taken it yet; watch ``waiting_seconds``), ``retry_scheduled``,\n``claimed``, ``claim_lapsed`` (its indexer stopped heartbeating) or\n``dead``. ``listing: \"unavailable\"`` means the backend can count its\nbacklog but not list it, so an empty ``tasks`` there is not \"nothing\nwaiting\". With the queue off, syncs run where they are asked and this\nreports ``enabled: false``.\n",
+      "inputSchema": {
+        "properties": {
+          "knowledge_base": {
+            "title": "Knowledge Base",
+            "type": "string"
+          },
+          "limit": {
+            "default": 50,
+            "title": "Limit",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "knowledge_base"
+        ],
+        "title": "get_index_queueArguments",
+        "type": "object"
+      },
+      "name": "get_index_queue"
+    },
+    "get_ingest_status": {
+      "description": "Return receipts: accepted, indexed, rejected or failed, per item.",
+      "inputSchema": {
+        "properties": {
+          "idempotency_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Idempotency Key"
+          },
+          "knowledge_base": {
+            "title": "Knowledge Base",
+            "type": "string"
+          },
+          "submission_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Submission Id"
+          }
+        },
+        "required": [
+          "knowledge_base"
+        ],
+        "title": "get_ingest_statusArguments",
+        "type": "object"
+      },
+      "name": "get_ingest_status"
+    },
+    "get_snapshot": {
+      "description": "Return a snapshot's manifest and whether the region still stands there.",
+      "inputSchema": {
+        "properties": {
+          "knowledge_base": {
+            "title": "Knowledge Base",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "title": "Snapshot Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "knowledge_base",
+          "snapshot_id"
+        ],
+        "title": "get_snapshotArguments",
+        "type": "object"
+      },
+      "name": "get_snapshot"
+    },
+    "list_knowledge_bases": {
+      "description": "Return registered knowledge bases and their status.",
+      "inputSchema": {
+        "properties": {},
+        "title": "list_knowledge_basesArguments",
+        "type": "object"
+      },
+      "name": "list_knowledge_bases"
+    },
+    "memory_write": {
+      "description": "Persist one agent-memory record (session/user/org scope) and index it.\n\nThe memory becomes retrievable via search_context immediately when\nsync=true (read-your-writes). Requires a `type: memory` source.\n\nprincipal records who asserted the memory; pass it whenever you know\nthe caller's identity, since it is what keeps one agent's memories\ndistinct from another's. kind marks a record as retrieval policy\n(alias/preference/exclusion) instead of a fact. valid_until gives the\nrecord an expiry it declares itself.\n\nsession identifies the conversation this call belongs to. It is\nrecorded, never enforced -- pass a stable opaque string and the\nregion can keep one refined memory per session; omit it and nothing\nchanges. Like principal, it is asserted by you and verified by\nnobody.\n",
+      "inputSchema": {
+        "properties": {
+          "kind": {
+            "default": "fact",
+            "title": "Kind",
+            "type": "string"
+          },
+          "knowledge_base": {
+            "title": "Knowledge Base",
+            "type": "string"
+          },
+          "principal": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Principal"
+          },
+          "scope": {
+            "default": "user",
+            "title": "Scope",
+            "type": "string"
+          },
+          "session": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Session"
+          },
+          "subject": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Subject"
+          },
+          "supersedes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Supersedes"
+          },
+          "sync": {
+            "default": true,
+            "title": "Sync",
+            "type": "boolean"
+          },
+          "tags": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Tags"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "valid_until": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Valid Until"
+          }
+        },
+        "required": [
+          "knowledge_base",
+          "text"
+        ],
+        "title": "memory_writeArguments",
+        "type": "object"
+      },
+      "name": "memory_write"
+    },
+    "reconcile_ingest": {
+      "description": "Reconcile submissions against what the region holds.\n\n``silent_loss`` is the number worth reading: receipts claiming an\nartifact this region does not have.\n",
+      "inputSchema": {
+        "properties": {
+          "knowledge_base": {
+            "title": "Knowledge Base",
+            "type": "string"
+          },
+          "submission_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Submission Id"
+          }
+        },
+        "required": [
+          "knowledge_base"
+        ],
+        "title": "reconcile_ingestArguments",
+        "type": "object"
+      },
+      "name": "reconcile_ingest"
+    },
+    "record_evidence": {
+      "description": "Record what came of a result: cited, selected, accepted, rejected, validated.\n\nBeing served is not evidence of usefulness and not selecting something\nis not evidence against it, so reporting nothing lowers the\nevaluation's coverage rather than corrupting it. See\n`pheasant://evaluation/taxonomy` for the event types.\n",
+      "inputSchema": {
+        "properties": {
+          "event_type": {
+            "title": "Event Type",
+            "type": "string"
+          },
+          "knowledge_base": {
+            "title": "Knowledge Base",
+            "type": "string"
+          },
+          "outcome_reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Outcome Reference"
+          },
+          "position": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Position"
+          },
+          "principal": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Principal"
+          },
+          "query": {
+            "title": "Query",
+            "type": "string"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Session Id"
+          },
+          "target_id": {
+            "title": "Target Id",
+            "type": "string"
+          },
+          "target_type": {
+            "default": "artifact",
+            "title": "Target Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "knowledge_base",
+          "query",
+          "target_id",
+          "event_type"
+        ],
+        "title": "record_evidenceArguments",
+        "type": "object"
+      },
+      "name": "record_evidence"
+    },
+    "register_source": {
+      "description": "Register a source: a folder/file path, or web pages by URL.\n\nFilesystem types (`document_folder`, `repository`, \u2026) need `path`,\nwhich is validated against the workspace allow-list. For web pages use\n`source_type=\"web_collection\"` with `urls=[...]` and no path; each\nURL is fetched, HTML is indexed as text, and pages are re-checked on\ntheir own schedule. Only public http(s) URLs are accepted here unless\nthe operator enabled `security.allow_agent_private_urls`.\n\nSet ``taxonomy`` for structured documentation (books, procedures,\nlegal documents): each artifact's outline \u2014 Chapter / Article /\nSection / \u00a7 / 1.2.3 / (a) \u2014 is then extracted on every sync, chunks\nare cut and labelled per section, and `heading` graph nodes are\nemitted. Off by default.\n",
+      "inputSchema": {
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Description"
+          },
+          "enabled": {
+            "default": true,
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "exclude": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Exclude"
+          },
+          "include": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Include"
+          },
+          "knowledge_base": {
+            "title": "Knowledge Base",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "path": {
+            "default": "",
+            "title": "Path",
+            "type": "string"
+          },
+          "source_type": {
+            "title": "Source Type",
+            "type": "string"
+          },
+          "sync_mode": {
+            "default": "incremental",
+            "title": "Sync Mode",
+            "type": "string"
+          },
+          "sync_now": {
+            "default": false,
+            "title": "Sync Now",
+            "type": "boolean"
+          },
+          "taxonomy": {
+            "default": false,
+            "title": "Taxonomy",
+            "type": "boolean"
+          },
+          "urls": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Urls"
+          },
+          "wait": {
+            "default": false,
+            "title": "Wait",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "knowledge_base",
+          "name",
+          "source_type"
+        ],
+        "title": "register_sourceArguments",
+        "type": "object"
+      },
+      "name": "register_source"
+    },
+    "seal_snapshot": {
+      "description": "Seal the current state as a run's reference snapshot.\n\nIdempotent over an unchanged region: the id is a digest of the state.\nPin a search to the returned `snapshot_id` and this region will answer\nfrom that state or refuse \u2014 it does not hold older corpus versions, so\nthe guarantee is that two runs naming one snapshot cannot silently have\nseen different corpora.\n",
+      "inputSchema": {
+        "properties": {
+          "knowledge_base": {
+            "title": "Knowledge Base",
+            "type": "string"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Label"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Note"
+          },
+          "sealed_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Sealed By"
+          }
+        },
+        "required": [
+          "knowledge_base"
+        ],
+        "title": "seal_snapshotArguments",
+        "type": "object"
+      },
+      "name": "seal_snapshot"
+    },
+    "search_context": {
+      "description": "Search indexed context and return compact results with provenance.\n\nThis is raw retrieval: the text, vector and graph arms fused by\nreciprocal rank fusion, with no model, no planner and no answer. Use it\nwhen you want to judge the evidence yourself; ask_knowledge_base is the\nregion's own answering workflow on top of the same retrieval.\n\nexpand walks the knowledge graph out from each hit and attaches the\nneighbourhood under the hit's \"graph\" key: what the file imports or\nreferences, the symbols it defines, its headings, the memory record\nthat superseded it. Pass true for one hop and 8 neighbours, a depth\n(1-3), or an object such as {\"depth\": 2, \"max_neighbors\": 12,\n\"edge_types\": [\"imports\", \"calls\"]} or {\"exclude_edge_types\": []}.\nEach neighbour names its node_id, type, label, the edge_types it was\nreached by and the node it was reached via, so you can follow it with\nget_graph_neighbors, get_graph_slice, explain_node or get_file_summary.\nBy default has_chunk and indexes edges are skipped (a file's own\npassages, and the source-to-every-file shortcut). At most 25 distinct\nhits are expanded; the response's \"expansion\" block says how many.\nEvery hit's node_id, and every passage's chunk_id, is a graph node id.\n\ninclude_chunks and include_graph_neighbors are accepted for\ncompatibility and do nothing; use expand.\n\nprincipal/principal_groups scope results to what that caller may see\nwhen security.acl_enforced is on (Step 32.2); ignored otherwise.\n\nsession identifies the conversation this call belongs to. It is\nrecorded, never enforced -- pass a stable opaque string and the\nregion can keep one refined memory per session; omit it and nothing\nchanges. Like principal, it is asserted by you and verified by\nnobody.\n\nsection restricts results to one part of a document's extracted\ntaxonomy, matched against the breadcrumb \u2014 \"\u00a7 12.3\", \"Article IV\" or a\nsection's wording all work, and naming a parent returns everything\nnested under it. Only meaningful for sources with taxonomy enabled.\n\npath_prefix keeps one file, or everything under one folder, of\nsource_name: a path as browse_source lists it (\"docs/guides\" or\n\"docs/guides/setup.md\"), matched exactly.\n\nsource_types/exclude_source_types scope by the kind of source \u2014\nrepository, gdrive, web_collection, markdown_folder \u2014 rather than by name, which\nis usually what you want when you do not already know every source in\nthe region. Every hit reports its own under provenance.source_type.\n\nsource_name/exclude_sources/node_types/min_score are retrieval\ncriteria you can set per call instead of relying on how the region\nwas configured. Call describe_retrieval to see what this region\noffers, and preview_retrieval to compare criteria against the\nstanding configuration before committing to them.\n\nmemory controls how this region's agent memory takes part: one of\n\"auto\" (default), \"off\", \"only\", \"prefer\", or an object such as\n{\"scopes\": [\"user\"], \"subject\": \"deploy\", \"as_of\": \"2026-01-01T00:00:00Z\"}.\nRecords a later record corrected are excluded by default; pass an\nas_of instant to ask what was believed at that time. Results that came\nfrom memory carry a \"memory\" block naming the record and its scope.\n\nsnapshot_id pins this search to a sealed snapshot: the region answers\nfrom that state or refuses with SNAPSHOT_DRIFTED, naming the sections\nthat moved. It holds one version of its corpus, so the guarantee is a\nrefusal rather than time travel \u2014 two runs naming one snapshot cannot\nsilently have seen different corpora.\n\nas_of is the instant memory validity is evaluated at, accepted here as\nwell as inside memory so it reaches the lineage block even where the\nregion holds no memory at all.\n",
+      "inputSchema": {
+        "properties": {
+          "as_of": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "As Of"
+          },
+          "exclude_documents": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Exclude Documents"
+          },
+          "exclude_source_types": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Exclude Source Types"
+          },
+          "exclude_sources": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Exclude Sources"
+          },
+          "expand": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expand"
+          },
+          "include_chunks": {
+            "default": true,
+            "title": "Include Chunks",
+            "type": "boolean"
+          },
+          "include_graph_neighbors": {
+            "default": true,
+            "title": "Include Graph Neighbors",
+            "type": "boolean"
+          },
+          "knowledge_base": {
+            "title": "Knowledge Base",
+            "type": "string"
+          },
+          "max_results": {
+            "default": 10,
+            "title": "Max Results",
+            "type": "integer"
+          },
+          "memory": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Memory"
+          },
+          "min_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Min Score"
+          },
+          "mode": {
+            "default": "hybrid",
+            "title": "Mode",
+            "type": "string"
+          },
+          "node_types": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Node Types"
+          },
+          "path_prefix": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Path Prefix"
+          },
+          "principal": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Principal"
+          },
+          "principal_groups": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Principal Groups"
+          },
+          "query": {
+            "title": "Query",
+            "type": "string"
+          },
+          "section": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Section"
+          },
+          "session": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Session"
+          },
+          "snapshot_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Snapshot Id"
+          },
+          "source_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Source Name"
+          },
+          "source_types": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Source Types"
+          }
+        },
+        "required": [
+          "knowledge_base",
+          "query"
+        ],
+        "title": "search_contextArguments",
+        "type": "object"
+      },
+      "name": "search_context"
+    },
+    "search_context_batch": {
+      "description": "Search for many queries in one call and return one merged context.\n\nUse this instead of calling search_context repeatedly when you need\ncontext for several sub-questions, facets or identifiers at once. Up\nto 25 queries, and at most 1000 hits in total (queries x max_results).\nEvery other argument means what it means on search_context and applies\nto every query.\n\nresults is the merged context: each passage once, ordered by rank\nacross queries -- every query's best hit, then every query's second --\nso truncating it keeps coverage of every query. Each hit's \"batch\"\nblock lists the query indexes that found it. searches holds each\nquery's own result set unless per_query is false; counts.overlap is\nhow many hits a query shared with an earlier one.\n\nexpand means what it means on search_context and is applied once, to\nthe merged results; the per-query result sets under searches are not\nexpanded.\n",
+      "inputSchema": {
+        "properties": {
+          "as_of": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "As Of"
+          },
+          "exclude_source_types": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Exclude Source Types"
+          },
+          "exclude_sources": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Exclude Sources"
+          },
+          "expand": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expand"
+          },
+          "knowledge_base": {
+            "title": "Knowledge Base",
+            "type": "string"
+          },
+          "max_results": {
+            "default": 10,
+            "title": "Max Results",
+            "type": "integer"
+          },
+          "memory": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Memory"
+          },
+          "min_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Min Score"
+          },
+          "mode": {
+            "default": "hybrid",
+            "title": "Mode",
+            "type": "string"
+          },
+          "node_types": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Node Types"
+          },
+          "per_query": {
+            "default": true,
+            "title": "Per Query",
+            "type": "boolean"
+          },
+          "principal": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Principal"
+          },
+          "principal_groups": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Principal Groups"
+          },
+          "queries": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Queries",
+            "type": "array"
+          },
+          "section": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Section"
+          },
+          "session": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Session"
+          },
+          "snapshot_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Snapshot Id"
+          },
+          "source_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Source Name"
+          },
+          "source_types": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Source Types"
+          }
+        },
+        "required": [
+          "knowledge_base",
+          "queries"
+        ],
+        "title": "search_context_batchArguments",
+        "type": "object"
+      },
+      "name": "search_context_batch"
+    },
+    "submit_documents": {
+      "description": "Persist documents with an idempotency key and one receipt per item.\n\nEach entry is ``{\"relative_path\", \"text\", \"idempotency_key\"?,\n\"metadata\"?}``. Re-submitting under a key this region has already seen\nfolds onto the receipt it wrote rather than making a second copy.\n\nSet content_encoding=\"base64\" to submit original PDF or other binary file bytes\nin each entry's text field. The default \"utf-8\" retains text submissions.\nHTTP MCP requests default to a 64 MiB whole-body limit, configurable with\nserver.mcp.max_request_body_size_mb. Account for base64 and JSON overhead;\nclients and proxies may impose smaller limits. Multipart /sources/upload\ndoes not preserve this tool's receipts or idempotency keys.\n\nAcceptance is not searchability: sync the source, then call\n`acknowledge_ingest`.\n",
+      "inputSchema": {
+        "properties": {
+          "agent_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Agent Id"
+          },
+          "content_encoding": {
+            "default": "utf-8",
+            "title": "Content Encoding",
+            "type": "string"
+          },
+          "documents": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Documents",
+            "type": "array"
+          },
+          "knowledge_base": {
+            "title": "Knowledge Base",
+            "type": "string"
+          },
+          "source_name": {
+            "default": "submissions",
+            "title": "Source Name",
+            "type": "string"
+          },
+          "submission_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Submission Id"
+          }
+        },
+        "required": [
+          "knowledge_base",
+          "documents"
+        ],
+        "title": "submit_documentsArguments",
+        "type": "object"
+      },
+      "name": "submit_documents"
+    },
+    "sync_source": {
+      "description": "Sync one configured source.\n\nA source that would exceed its configured size limits returns\n``status: \"limit_exceeded\"`` and indexes nothing \u2014 call\n``scan_source`` first to see the shape, then either narrow it with\n``max_depth`` or re-run with ``full_scan=True``.\n",
+      "inputSchema": {
+        "properties": {
+          "full_scan": {
+            "default": false,
+            "title": "Full Scan",
+            "type": "boolean"
+          },
+          "knowledge_base": {
+            "title": "Knowledge Base",
+            "type": "string"
+          },
+          "max_depth": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Max Depth"
+          },
+          "mode": {
+            "default": "incremental",
+            "title": "Mode",
+            "type": "string"
+          },
+          "source_name": {
+            "title": "Source Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "knowledge_base",
+          "source_name"
+        ],
+        "title": "sync_sourceArguments",
+        "type": "object"
+      },
+      "name": "sync_source"
+    }
+  }
+}
