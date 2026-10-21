@@ -70,6 +70,10 @@ class IngestRequest:
     provenance: IngestProvenance = field(default_factory=IngestProvenance)
     operation: str = "upload"
     relative_path: str | None = None
+    #: The region source the document lands in. Part of the idempotency key,
+    #: because pheasant folds a resubmitted key onto its existing receipt and
+    #: keeps ``indexed`` even when the new submission lands in another source.
+    region_source: str = ""
 
     @property
     def content_digest(self) -> str:
@@ -87,7 +91,11 @@ class IngestRequest:
 
     @property
     def idempotency_key(self) -> str:
-        return ids.idempotency_key("pheasant-lab", self.source_id, self.content_digest)
+        # Unscoped, a second run on the same region into a new source folded
+        # onto the first run's receipts and crossed its barrier before the
+        # new source held a single document.
+        scope = f"pheasant-lab/{self.region_source}" if self.region_source else "pheasant-lab"
+        return ids.idempotency_key(scope, self.source_id, self.content_digest)
 
     @property
     def ingest_request_id(self) -> str:
@@ -710,6 +718,7 @@ def build_requests(
     run_id: str,
     topic_id: str,
     namespace: str,
+    region_source: str = "",
 ) -> list[IngestRequest]:
     """Build ingest requests from normalised source records."""
 
@@ -741,6 +750,7 @@ def build_requests(
                     researcher_agent_id=item.get("researcher_agent_id"),
                 ),
                 operation=str(item.get("operation", "upload")),
+                region_source=region_source,
             )
         )
     return requests

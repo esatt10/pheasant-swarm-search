@@ -62,7 +62,7 @@ uv run python scripts/export_schemas.py               # after changing a record 
 make ui && uv run pheasant-lab serve                  # the console, http://127.0.0.1:8770
 uv run pheasant-lab mcp                               # the console's tools over MCP stdio (/mcp over HTTP)
 uv run pheasant-lab settings --section models         # every setting, explained
-docker compose up -d --build                          # lab + a pheasant 0.13.5 region (docs/docker.md)
+docker compose up -d --build                          # lab + a pheasant 0.14.0 region (docs/docker.md)
 ```
 
 ## 4. Design decisions worth knowing before you change something

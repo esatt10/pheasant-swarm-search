@@ -1,13 +1,13 @@
 # ---------------------------------------------------------------------------
 # The bundled region's configuration, for docker-compose.yml's `pheasant`
-# service (ghcr.io/esatt10/pheasant:0.13.5, role all, one container).
+# service (ghcr.io/esatt10/pheasant:0.14.0, role all, one container).
 #
-# VENDORED from pheasant-kb: deploy/compose/swarm-lab.yaml, generated there by
-#   python -m pheasant setup --answers deploy/compose/answers/swarm-lab.json \
-#     --accept-defaults --plain --target compose \
-#     --output deploy/compose/swarm-lab.yaml --force
-# Regenerate it there and copy it here; tests/unit/test_docker_deployment.py
-# holds what the lab needs from it:
+# Maintained here. pheasant-kb ships one lab setup, the pheasant-lab fleet
+# (docker-compose.fleet.yml drives it); this is the lab's own single-container
+# region. Check it against a pheasant release with
+#   pheasant validate --no-require-paths deploy/pheasant/pheasant.yaml
+# (0.14.0 accepts it). tests/unit/test_docker_deployment.py holds what the
+# lab needs from it:
 #
 # * MCP over streamable HTTP at /mcp, with every tool the capability map names,
 #   and `http://pheasant:8765` in `server.api.cors_origins`: pheasant derives
@@ -133,6 +133,8 @@ assistant:
     retrieval_modes:
       - text
       - vector
+  decisions:
+    mode: beta
 evaluation:
   enabled: true
   on_material_snapshot: false

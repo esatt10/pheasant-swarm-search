@@ -16,7 +16,7 @@ call rather than reconciling after.
 uv run pheasant-lab demo --config configs/demo.yaml   # offline, free, end to end
 ```
 
-Or in Docker, with a real Pheasant 0.13.5 region beside the console — the
+Or in Docker, with a real Pheasant 0.14.0 region beside the console — the
 first run is still free (fixture literature, replay models) and every document
 is genuinely submitted, indexed and searched ([docs/docker.md](docs/docker.md)):
 
@@ -293,9 +293,9 @@ The lab writes to a knowledge base and a source it owns. Use a namespace that
 holds nothing else: it submits documents and seals snapshots there.
 
 **What the region needs** (pheasant >= 0.12.6; checked end to end against
-0.12.16, 0.13.0, 0.13.1, 0.13.2 and 0.13.4, the last two both standalone and
-role-split; the shipped pheasant file targets 0.13.5, whose MCP surface is
-0.13.4's - it adds only pheasant-kb's documentation of this lab):
+0.12.16, 0.13.0, 0.13.1, 0.13.2, 0.13.4, 0.13.11 and 0.14.0, the last four
+both standalone and role-split; the shipped pheasant file targets 0.14.0,
+whose tools only add what the lab does not use):
 
 * `readiness.enabled: true` — `submit_documents`, the receipts and snapshots
   live on the readiness plane;
@@ -306,7 +306,10 @@ role-split; the shipped pheasant file targets 0.13.5, whose MCP surface is
 * a `type: memory` source, for `P1`;
 * the API token in `PHEASANT_API_TOKEN` when `security.api_auth` is on.
 
-`deploy/compose/answers/pheasant-lab.json` in pheasant-kb sets all four.
+`deploy/compose/answers/pheasant-lab.json` in pheasant-kb sets all four, and
+lists `http://api:8765` in `cors_origins` - the name `docker-compose.fleet.yml`
+dials, which the region otherwise answers 421 (pheasant-kb >= 0.14.0;
+regenerate a fleet `pheasant.yaml` written from an older checkout).
 
 **A role-split region (fleet).** There `sync_source` and the memory write's
 sync are *published*, not run, and nothing is searchable until an indexer
